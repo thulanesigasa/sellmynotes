@@ -1,0 +1,15 @@
+[project]
+id = "sellmynotes"
+name = "sellmynotes"
+
+[api]
+port = 54321
+
+[db]
+port = 54322
+
+[studio]
+port = 54323
+
+[inbucket]
+port = 54324
