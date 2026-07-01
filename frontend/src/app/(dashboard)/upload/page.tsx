@@ -3,20 +3,24 @@
 import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
 import { UploadCloud, File as FileIcon, X, CheckCircle2 } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
-import { uploadFileDirectly, NoteMetadata } from '@/lib/storage';
+import { uploadRawNote, NoteMetadata } from '@/lib/storage';
+import { useRouter } from 'next/navigation';
 
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
 export default function UploadPage() {
+  const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [metadata, setMetadata] = useState<NoteMetadata>({
     title: '',
     institution: '',
     course_code: '',
+    description: '',
   });
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,7 +65,7 @@ export default function UploadPage() {
     }
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (name === 'course_code' && value.length > 10) return;
     setMetadata(prev => ({ ...prev, [name]: value }));
@@ -73,27 +77,33 @@ export default function UploadPage() {
       toast.error('Please select a file to upload.');
       return;
     }
-    if (!metadata.title || !metadata.institution || !metadata.course_code) {
-      toast.error('Please fill in all metadata fields.');
+    if (!metadata.title || !metadata.institution || !metadata.course_code || !metadata.description) {
+      toast.error('Please fill in all fields.');
       return;
     }
 
     try {
       setIsUploading(true);
-      toast.loading('Initializing secure upload...');
+      setUploadProgress(0);
+      toast.loading('Initializing secure direct cloud upload...');
       
-      await uploadFileDirectly(file, metadata);
+      await uploadRawNote(file, metadata, (progress) => {
+        setUploadProgress(progress);
+      });
       
       toast.dismiss();
-      toast.success('File uploaded successfully! AI processing has started.');
+      toast.success('Upload complete! Smart Valuation processing has started.');
       
-      // Reset form
+      // Reset form state
       setFile(null);
-      setMetadata({ title: '', institution: '', course_code: '' });
+      setMetadata({ title: '', institution: '', course_code: '', description: '' });
       if (fileInputRef.current) fileInputRef.current.value = '';
+      
+      // Redirect user to the dashboard library
+      router.push('/dashboard');
     } catch (error: any) {
       toast.dismiss();
-      toast.error(`Upload failed: ${error.message || 'Unknown error'}`);
+      toast.error(`Upload failed: ${error.message || 'Unknown network error'}`);
     } finally {
       setIsUploading(false);
     }
@@ -104,7 +114,7 @@ export default function UploadPage() {
       <Toaster position="top-right" richColors />
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Sell Your Notes</h1>
-        <p className="text-gray-500 mb-8">Upload your study material and our AI will automatically value it.</p>
+        <p className="text-gray-500 mb-8">Upload your study materials securely to calculate their smart valuation.</p>
 
         <form onSubmit={handleUpload} className="space-y-8">
           {/* Drag & Drop Zone */}
@@ -136,7 +146,7 @@ export default function UploadPage() {
                     e.stopPropagation();
                     setFile(null);
                   }}
-                  className="mt-2 text-sm text-red-500 hover:text-red-700 flex items-center"
+                  className="mt-2 text-sm text-red-500 hover:text-red-700 flex items-center border-b border-transparent hover:border-red-700"
                 >
                   <X className="h-4 w-4 mr-1" /> Remove File
                 </button>
@@ -149,6 +159,22 @@ export default function UploadPage() {
               </div>
             )}
           </div>
+
+          {/* Real-time Upload Progress Bar */}
+          {isUploading && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm font-medium text-gray-700">
+                <span>Uploading direct to cloud...</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                <div 
+                  className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-out" 
+                  style={{ width: `${uploadProgress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
 
           {/* Metadata Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -192,6 +218,19 @@ export default function UploadPage() {
                 required
               />
             </div>
+            <div className="space-y-2 md:col-span-2">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+              <textarea
+                id="description"
+                name="description"
+                value={metadata.description}
+                onChange={handleChange}
+                placeholder="Describe your study notes (topics covered, chapter summaries, format, neatness)..."
+                rows={4}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                required
+              />
+            </div>
           </div>
 
           <button
@@ -207,12 +246,12 @@ export default function UploadPage() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Uploading securely to cloud...
+                Direct Cloud Upload ({uploadProgress}%)
               </span>
             ) : (
               <span className="flex items-center">
                 <CheckCircle2 className="h-5 w-5 mr-2" />
-                Submit for AI Valuation
+                Submit for Smart Valuation
               </span>
             )}
           </button>
