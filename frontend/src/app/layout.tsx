@@ -16,8 +16,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sell My Notes",
-  description: "Buy and sell your study notes",
+  metadataBase: new URL("https://sellmynotes.co.za"),
+  title: {
+    default: "sellmynotes | Buy & Sell Study Notes",
+    template: "%s | sellmynotes"
+  },
+  description: "The premier South African marketplace for students to buy and sell high-quality study notes, summaries, and exam prep materials.",
+  keywords: ["study notes", "sell notes", "buy notes", "university notes", "exam prep", "South Africa", "student marketplace"],
+  openGraph: {
+    type: "website",
+    locale: "en_ZA",
+    url: "https://sellmynotes.co.za",
+    title: "sellmynotes | Buy & Sell Study Notes",
+    description: "The premier South African marketplace for students to buy and sell high-quality study notes, summaries, and exam prep materials.",
+    siteName: "sellmynotes"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "sellmynotes | Buy & Sell Study Notes",
+    description: "The premier South African marketplace for students to buy and sell high-quality study notes, summaries, and exam prep materials."
+  },
+  verification: {
+    google: "YOUR_GOOGLE_SEARCH_CONSOLE_VERIFICATION_CODE_HERE",
+  }
 };
 
 export default function RootLayout({
