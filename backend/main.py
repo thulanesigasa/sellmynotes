@@ -16,7 +16,23 @@ from src.utils.mailer import send_receipt_email, send_note_published_email
 from dotenv import load_dotenv
 load_dotenv()
 
-logging.basicConfig(level=logging.INFO)
+import json
+
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        log_record = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "name": record.name
+        }
+        if record.exc_info:
+            log_record["exc_info"] = self.formatException(record.exc_info)
+        return json.dumps(log_record)
+
+log_handler = logging.StreamHandler()
+log_handler.setFormatter(JSONFormatter())
+logging.basicConfig(level=logging.INFO, handlers=[log_handler], force=True)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
@@ -52,27 +68,22 @@ async def process_note_background(record: dict):
 
     try:
         logger.info(f"Downloading {file_path} from Supabase...")
-        # 1. Download file bytes from Supabase
         res = supabase.storage.from_("raw_notes").download(file_path)
         pdf_bytes = res
         
         logger.info("Extracting text via PyMuPDF...")
-        # 2. Extract Text
         text = extract_text_from_pdf_bytes(pdf_bytes, max_pages=15)
         if not text:
             logger.warning(f"No text extracted for note {note_id}")
             text = "Empty document or scanned image without OCR."
 
         logger.info("Pinging OpenAI for valuation...")
-        # 3. Valuate Notes using AI
         valuation = await valuate_notes(text, title, institution)
         suggested_price = valuation.get("suggested_price_zar", 50)
         
-        # Calculate Base Price + 40% margin
         final_price = round(suggested_price * 1.40, 2)
         
-        logger.info(f"Smart Valuation Complete. Base: R{suggested_price}, Final (with 40% margin): R{final_price}. Updating Database...")
-        # 4. Update Database
+        logger.info(f"Smart Valuation Complete. Base: R{suggested_price}, Final: R{final_price}. Updating Database...")
         supabase.table("notes").update({
             "price_zar": final_price,
             "status": "draft"
@@ -81,19 +92,16 @@ async def process_note_background(record: dict):
         logger.info(f"Successfully processed note {note_id}. Status set to 'draft'.")
         
     except Exception as e:
-        import traceback
-        error_trace = traceback.format_exc()
-        logger.error(f"FATAL ERROR processing note {note_id}: {e}\n{error_trace}")
-        
-        # Safely update note status to 'rejected' / 'failed'
+        logger.error(f"FATAL ERROR processing note {note_id}: {e}", exc_info=True)
         try:
             supabase.table("notes").update({
-                "status": "rejected", # using existing 'rejected' enum value
+                "status": "failed",
                 "description": f"Failed to process document automatically. Support team notified."
             }).eq("id", note_id).execute()
-            logger.info(f"Note {note_id} marked as 'rejected' due to processing failure.")
+            logger.info(f"Note {note_id} marked as 'failed' due to processing failure.")
         except Exception as db_err:
-            logger.error(f"Failed to update note status to 'rejected' for {note_id}: {db_err}")
+            logger.error(f"Failed to update note status to 'failed' for {note_id}: {db_err}", exc_info=True)
+
 
 @app.post("/webhooks/process-note")
 async def handle_process_note(

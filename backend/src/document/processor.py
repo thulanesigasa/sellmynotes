@@ -18,8 +18,7 @@ def extract_text_from_pdf_bytes(pdf_bytes: bytes, max_pages: int = 10) -> str:
         
         return text.strip()
     except Exception as e:
-        import traceback
-        logger.error(f"Error extracting PDF text: {e}\n{traceback.format_exc()}")
+        logger.error(f"Failed to extract text from PDF: {e}", exc_info=True)
         raise Exception(f"Failed to extract text from PDF: {str(e)}")
 
 def add_watermark_to_pdf(pdf_bytes: bytes, watermark_text: str) -> bytes:
@@ -48,5 +47,5 @@ def add_watermark_to_pdf(pdf_bytes: bytes, watermark_text: str) -> bytes:
                     
         return doc.write()
     except Exception as e:
-        logger.error(f"Error adding watermark: {e}")
+        logger.error(f"Error adding watermark: {e}", exc_info=True)
         return pdf_bytes # Fallback to original if watermarking fails

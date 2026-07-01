@@ -44,6 +44,5 @@ async def valuate_notes(text: str, title: str, institution: str) -> dict:
              
         return json.loads(result_content)
     except Exception as e:
-        import traceback
-        logger.error(f"OpenAI API Error: {e}\n{traceback.format_exc()}")
+        logger.error(f"OpenAI API Error: {e}", exc_info=True)
         raise Exception(f"OpenAI Valuation failed: {str(e)}")
