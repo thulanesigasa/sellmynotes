@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { Toaster, toast } from 'sonner';
 import Link from 'next/link';
-import { BookOpen } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -54,8 +54,8 @@ export default function LoginPage() {
       <Toaster position="top-right" richColors />
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="flex justify-center">
-          <BookOpen className="h-12 w-12 text-blue-600" />
+        <div className="mx-auto h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center mb-6">
+          <CheckCircle2 className="h-10 w-10 text-blue-600" />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Sign in to your account

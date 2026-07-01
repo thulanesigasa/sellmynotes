@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 
 export interface NoteMetadata {
   title: string;
-  university: string;
+  institution: string;
   course_code: string;
 }
 
@@ -46,7 +46,7 @@ export async function uploadFileDirectly(file: File, metadata: NoteMetadata) {
         {
           seller_id: userId,
           title: metadata.title,
-          university: metadata.university,
+          institution: metadata.institution,
           course_code: metadata.course_code,
           file_path: fileName,
           status: 'processing',

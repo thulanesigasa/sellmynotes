@@ -42,7 +42,7 @@ async def process_note_background(record: dict):
     note_id = record.get("id")
     file_path = record.get("file_path")
     title = record.get("title", "Unknown Title")
-    university = record.get("university", "Unknown University")
+    institution = record.get("institution", "Unknown Institution")
     
     if not supabase:
         logger.error("Supabase client not configured.")
@@ -63,7 +63,7 @@ async def process_note_background(record: dict):
 
         logger.info("Pinging OpenAI for valuation...")
         # 3. Valuate Notes using AI
-        valuation = await valuate_notes(text, title, university)
+        valuation = await valuate_notes(text, title, institution)
         suggested_price = valuation.get("suggested_price_zar", 50)
         
         logger.info(f"AI Valuation Complete: R{suggested_price}. Updating Database...")

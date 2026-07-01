@@ -3,14 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Toaster, toast } from 'sonner';
-import { Search, BookOpen, GraduationCap, CreditCard } from 'lucide-react';
+import { Search, GraduationCap, CreditCard } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
 interface Note {
   id: string;
   title: string;
   course_code: string;
-  university: string;
+  institution: string;
   price_zar: number;
 }
 
@@ -36,7 +36,7 @@ export default function ExplorePage() {
     try {
       const { data, error } = await supabase
         .from('notes')
-        .select('id, title, course_code, university, price_zar')
+        .select('id, title, course_code, institution, price_zar')
         .eq('status', 'published')
         .order('created_at', { ascending: false });
 
@@ -44,7 +44,7 @@ export default function ExplorePage() {
       setNotes(data || []);
     } catch (error: any) {
       toast.error('Failed to load notes');
-      console.error(error);
+      console.error('Fetch Notes Error:', JSON.stringify(error, null, 2), error.message);
     } finally {
       setLoading(false);
     }
@@ -108,7 +108,7 @@ export default function ExplorePage() {
   const filteredNotes = notes.filter(n => 
     n.title.toLowerCase().includes(search.toLowerCase()) ||
     n.course_code.toLowerCase().includes(search.toLowerCase()) ||
-    n.university.toLowerCase().includes(search.toLowerCase())
+    n.institution.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -128,7 +128,7 @@ export default function ExplorePage() {
           <input
             type="text"
             className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm shadow-sm transition-all"
-            placeholder="Search by course, university, or title..."
+            placeholder="Search by course, institution, or title..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -141,7 +141,7 @@ export default function ExplorePage() {
         </div>
       ) : filteredNotes.length === 0 ? (
         <div className="text-center bg-gray-50 rounded-2xl p-16 border border-gray-100">
-          <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <Search className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900">No notes found</h3>
           <p className="text-gray-500 mt-1">Try adjusting your search terms.</p>
         </div>
@@ -159,7 +159,7 @@ export default function ExplorePage() {
                 
                 <div className="flex items-center text-sm text-gray-500">
                   <GraduationCap className="h-4 w-4 mr-2" />
-                  {note.university}
+                  {note.institution}
                 </div>
                 
                 <div className="pt-4 flex items-center justify-between border-t border-gray-100 mt-auto">

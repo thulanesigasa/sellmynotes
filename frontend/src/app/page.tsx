@@ -11,12 +11,18 @@ export default function Home() {
           The premium marketplace for South African students to securely sell and buy study materials.
         </p>
         
-        <div className="pt-8">
+        <div className="pt-8 flex items-center justify-center space-x-4">
           <Link 
-            href="/upload" 
+            href="/login" 
+            className="inline-block bg-white hover:bg-gray-50 text-blue-600 border border-blue-600 font-bold py-4 px-8 rounded-full shadow-sm hover:shadow transition-all"
+          >
+            Log in
+          </Link>
+          <Link 
+            href="/signup" 
             className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-full shadow-lg hover:shadow-xl transition-all"
           >
-            Go to Seller Dashboard (Upload)
+            Sign up
           </Link>
         </div>
       </div>

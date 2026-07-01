@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Toaster, toast } from 'sonner';
-import { BookOpen, Download, Clock } from 'lucide-react';
+import { Download, Clock, Library } from 'lucide-react';
 
 interface Purchase {
   id: string;
@@ -12,7 +12,7 @@ interface Purchase {
   notes: {
     title: string;
     course_code: string;
-    university: string;
+    institution: string;
   };
 }
 
@@ -39,7 +39,7 @@ export default function LibraryPage() {
           notes (
             title,
             course_code,
-            university
+            institution
           )
         `)
         .eq('buyer_id', session.user.id)
@@ -115,7 +115,7 @@ export default function LibraryPage() {
         </div>
       ) : purchases.length === 0 ? (
         <div className="text-center bg-gray-50 rounded-2xl p-16 border border-gray-100">
-          <BookOpen className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          <Library className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900">Your library is empty</h3>
           <p className="text-gray-500 mt-1">Head over to the Explore page to find notes.</p>
         </div>
@@ -133,6 +133,10 @@ export default function LibraryPage() {
                   </span>
                 </div>
                 
+                <div className="flex items-center text-sm text-gray-500">
+                  <span className="font-medium mr-2">Institution:</span>
+                  {purchase.notes.institution}
+                </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <Clock className="h-4 w-4 mr-2" />
                   Purchased on {new Date(purchase.created_at).toLocaleDateString()}

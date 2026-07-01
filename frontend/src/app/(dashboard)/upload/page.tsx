@@ -13,7 +13,7 @@ export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
   const [metadata, setMetadata] = useState<NoteMetadata>({
     title: '',
-    university: '',
+    institution: '',
     course_code: '',
   });
   const [isUploading, setIsUploading] = useState(false);
@@ -73,7 +73,7 @@ export default function UploadPage() {
       toast.error('Please select a file to upload.');
       return;
     }
-    if (!metadata.title || !metadata.university || !metadata.course_code) {
+    if (!metadata.title || !metadata.institution || !metadata.course_code) {
       toast.error('Please fill in all metadata fields.');
       return;
     }
@@ -89,7 +89,7 @@ export default function UploadPage() {
       
       // Reset form
       setFile(null);
-      setMetadata({ title: '', university: '', course_code: '' });
+      setMetadata({ title: '', institution: '', course_code: '' });
       if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error: any) {
       toast.dismiss();
@@ -166,14 +166,14 @@ export default function UploadPage() {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="university" className="block text-sm font-medium text-gray-700">University</label>
+              <label htmlFor="institution" className="block text-sm font-medium text-gray-700">Institution</label>
               <input
                 type="text"
-                id="university"
-                name="university"
-                value={metadata.university}
+                id="institution"
+                name="institution"
+                value={metadata.institution}
                 onChange={handleChange}
-                placeholder="e.g. University of Cape Town"
+                placeholder="e.g. University of Cape Town or Pretoria High School"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                 required
               />

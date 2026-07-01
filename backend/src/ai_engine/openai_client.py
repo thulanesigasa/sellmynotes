@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 api_key = os.environ.get("OPENAI_API_KEY")
 client = AsyncOpenAI(api_key=api_key) if api_key else None
 
-async def valuate_notes(text: str, title: str, university: str) -> dict:
+async def valuate_notes(text: str, title: str, institution: str) -> dict:
     """
     Analyzes extracted text using OpenAI and determines a ZAR value.
     Expects a JSON response.
@@ -26,7 +26,7 @@ async def valuate_notes(text: str, title: str, university: str) -> dict:
         "'suggested_price_zar' (integer), 'quality_score' (1-10 integer), and 'reasoning' (string)."
     )
     
-    user_prompt = f"Title: {title}\nUniversity: {university}\n\nExcerpt:\n{text[:4000]}"
+    user_prompt = f"Title: {title}\nInstitution: {institution}\n\nExcerpt:\n{text[:4000]}"
     
     try:
         response = await client.chat.completions.create(
