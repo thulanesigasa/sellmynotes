@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   req: Request,
-  { params }: { params: { purchaseId: string } }
+  { params }: { params: Promise<{ purchaseId: string }> }
 ) {
   try {
-    const purchaseId = params.purchaseId;
+    const { purchaseId } = await params;
     
     // 1. Get auth token from headers (the client sends this)
     const authHeader = req.headers.get('Authorization');
