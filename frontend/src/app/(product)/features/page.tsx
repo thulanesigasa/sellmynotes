@@ -35,7 +35,7 @@ export default function FeaturesPage() {
             Everything you need to excel in your studies
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-600">
-            SellMyNotes provides a premium platform for students to share knowledge and earn from their hard work.
+            sellmynotes provides a premium platform for students to share knowledge and earn from their hard work.
           </p>
         </div>
         <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">

@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { Mail, Clock, MapPin, Phone, MessageCircle } from 'lucide-react';
 
@@ -20,7 +22,7 @@ export default function ContactPage() {
             
             <div className="space-y-8">
               <div className="flex items-start">
-                <div className="flex-shrink-0 bg-blue-100 p-3 rounded-xl">
+                <div className="flex-shrink-0 mt-1">
                   <Mail className="h-6 w-6 text-blue-600" />
                 </div>
                 <div className="ml-4">
@@ -30,19 +32,10 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              <div className="flex items-start">
-                <div className="flex-shrink-0 bg-blue-100 p-3 rounded-xl">
-                  <MessageCircle className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <h3 className="text-lg font-bold text-gray-900">Social Media</h3>
-                  <p className="mt-1 text-gray-600">DM us on Twitter or Instagram @SellMyNotesSA</p>
-                  <p className="mt-1 text-sm text-gray-500">For quick questions and community updates.</p>
-                </div>
-              </div>
+
 
               <div className="flex items-start">
-                <div className="flex-shrink-0 bg-blue-100 p-3 rounded-xl">
+                <div className="flex-shrink-0 mt-1">
                   <Clock className="h-6 w-6 text-blue-600" />
                 </div>
                 <div className="ml-4">
@@ -53,13 +46,13 @@ export default function ContactPage() {
               </div>
 
               <div className="flex items-start">
-                <div className="flex-shrink-0 bg-blue-100 p-3 rounded-xl">
+                <div className="flex-shrink-0 mt-1">
                   <MapPin className="h-6 w-6 text-blue-600" />
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-bold text-gray-900">Headquarters</h3>
-                  <p className="mt-1 text-gray-600">Braamfontein, Johannesburg</p>
-                  <p className="mt-1 text-gray-600">South Africa, 2001</p>
+                  <p className="mt-1 text-gray-600">Kelvin, Sandton</p>
+                  <p className="mt-1 text-gray-600">South Africa, 2090</p>
                   <p className="mt-1 text-sm text-gray-500">Please note: We do not accept walk-ins.</p>
                 </div>
               </div>
