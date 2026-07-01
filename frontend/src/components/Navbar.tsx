@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
-import { LogOut, User, Bell, Heart, Bookmark, FileText } from 'lucide-react';
+import { LogOut, User, Bell, Heart, Bookmark, FileText, BookOpen } from 'lucide-react';
 
 interface Notification {
   id: string;
@@ -28,6 +28,34 @@ export default function Navbar() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationRef = useRef<HTMLDivElement>(null);
+
+  async function fetchNotifications(userId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select(`
+          id, type, is_read, created_at,
+          profiles:actor_id (first_name, surname),
+          notes:note_id (title)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (!error && data) {
+        // Safe mapping in case profiles or notes were deleted
+        const safeData = data.filter(n => n.profiles && n.notes).map(n => ({
+          ...n,
+          profiles: Array.isArray(n.profiles) ? n.profiles[0] : n.profiles,
+          notes: Array.isArray(n.notes) ? n.notes[0] : n.notes,
+        })) as Notification[];
+        
+        setNotifications(safeData);
+      }
+    } catch (e) {
+      console.error("Failed to fetch notifications", e);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -61,34 +89,6 @@ export default function Navbar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const fetchNotifications = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('notifications')
-        .select(`
-          id, type, is_read, created_at,
-          profiles:actor_id (first_name, surname),
-          notes:note_id (title)
-        `)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (!error && data) {
-        // Safe mapping in case profiles or notes were deleted
-        const safeData = data.filter(n => n.profiles && n.notes).map(n => ({
-          ...n,
-          profiles: Array.isArray(n.profiles) ? n.profiles[0] : n.profiles,
-          notes: Array.isArray(n.notes) ? n.notes[0] : n.notes,
-        })) as Notification[];
-        
-        setNotifications(safeData);
-      }
-    } catch (e) {
-      console.error("Failed to fetch notifications", e);
-    }
-  };
 
   const markAsRead = async () => {
     if (!session || notifications.filter(n => !n.is_read).length === 0) return;
@@ -126,7 +126,13 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
-            <div className="flex sm:space-x-8">
+            <Link href="/" className="flex-shrink-0 flex items-center group">
+              <BookOpen className="h-8 w-8 text-blue-600 group-hover:text-blue-700 transition-colors" />
+              <span className="ml-2 text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                SellMyNotes
+              </span>
+            </Link>
+            <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
               <Link href="/explore" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${pathname === '/explore' ? 'border-blue-600 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}>
                 Explore Feed
               </Link>
@@ -215,7 +221,16 @@ export default function Navbar() {
                   </button>
                 </div>
               </>
-            ) : null}
+            ) : (
+              <>
+                <Link href="/login" className="text-gray-500 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                  Log in
+                </Link>
+                <Link href="/signup" className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium shadow-sm transition-colors">
+                  Sign up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

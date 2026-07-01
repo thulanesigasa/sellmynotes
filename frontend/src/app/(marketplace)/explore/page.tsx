@@ -34,23 +34,7 @@ function ExploreContent() {
   
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const paymentStatus = searchParams.get('payment');
-    if (paymentStatus === 'success') {
-      toast.success('Payment successful! Your notes are ready to download.');
-    } else if (paymentStatus === 'cancelled') {
-      toast.error('Payment cancelled.');
-    }
-    
-    // Check auth session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setUserId(session.user.id);
-        fetchUserInteractions(session.user.id);
-      }
-      fetchNotes(0, false);
-    });
-  }, [searchParams]);
+
 
   const fetchUserInteractions = async (uid: string) => {
     try {
@@ -123,6 +107,24 @@ function ExploreContent() {
       setLoadingMore(false);
     }
   };
+
+  useEffect(() => {
+    const paymentStatus = searchParams.get('payment');
+    if (paymentStatus === 'success') {
+      toast.success('Payment successful! Your notes are ready to download.');
+    } else if (paymentStatus === 'cancelled') {
+      toast.error('Payment cancelled.');
+    }
+    
+    // Check auth session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setUserId(session.user.id);
+        fetchUserInteractions(session.user.id);
+      }
+      fetchNotes(0, false);
+    });
+  }, [searchParams]);
 
   const handleLoadMore = () => {
     const nextPage = page + 1;

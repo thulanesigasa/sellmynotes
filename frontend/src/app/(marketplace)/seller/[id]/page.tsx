@@ -31,13 +31,7 @@ export default function SellerProfilePage() {
   const [reviewCount, setReviewCount] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (id) {
-      fetchSellerData();
-    }
-  }, [id]);
-
-  const fetchSellerData = async () => {
+  async function fetchSellerData() {
     setLoading(true);
     try {
       // 1. Fetch seller profile
@@ -83,6 +77,12 @@ export default function SellerProfilePage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (id) {
+      fetchSellerData();
+    }
+  }, [id]);
 
   if (loading) {
     return (

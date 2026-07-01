@@ -40,11 +40,7 @@ export default function NoteDetailPage() {
   const [hasVerifiedPurchase, setHasVerifiedPurchase] = useState(false);
   const [isOwnNote, setIsOwnNote] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      fetchNote();
-    }
-  }, [id]);
+
 
   const fetchNote = async () => {
     setLoading(true);
@@ -108,6 +104,12 @@ export default function NoteDetailPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (id) {
+      fetchNote();
+    }
+  }, [id]);
 
   const handleBuy = async () => {
     if (!note) return;

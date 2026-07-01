@@ -83,11 +83,11 @@ export default function AdminDashboardPage() {
     }
   }, []);
 
-  const applyFilters = (
+  function applyFilters(
     list: AdminPurchase[],
     status: FilterStatus,
     query: string
-  ) => {
+  ) {
     let result = list;
     if (status !== 'all') result = result.filter((p) => p.status === status);
     if (query.trim()) {
