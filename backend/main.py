@@ -1,10 +1,13 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Header, Depends
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import logging
 from typing import Optional
+from io import BytesIO
+from datetime import datetime
 
 from src.lib.supabase_client import supabase
-from src.document.processor import extract_text_from_pdf_bytes
+from src.document.processor import extract_text_from_pdf_bytes, add_watermark_to_pdf
 from src.ai_engine.openai_client import valuate_notes
 
 # Explicitly load dotenv if we are running locally (fallback)
@@ -91,3 +94,68 @@ async def handle_process_note(payload: WebhookPayload, background_tasks: Backgro
     background_tasks.add_task(process_note_background, record)
     
     return {"status": "accepted", "message": f"Processing note {record.get('id')} in background"}
+
+@app.get("/delivery/download/{purchase_id}")
+async def download_watermarked_note(purchase_id: str, authorization: str = Header(...)):
+    """
+    Validates ownership, adds a dynamic watermark, releases escrow, and serves the PDF.
+    """
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Invalid authorization header")
+    
+    token = authorization.replace("Bearer ", "")
+    
+    # 1. Verify User
+    try:
+        user_res = supabase.auth.get_user(token)
+        user = user_res.user
+        if not user:
+            raise HTTPException(status_code=401, detail="Unauthorized")
+    except Exception as e:
+        logger.error(f"Auth error: {e}")
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    # 2. Fetch Purchase and verify ownership
+    purchase_res = supabase.table("purchases").select("*, notes(file_path)").eq("id", purchase_id).single().execute()
+    purchase = purchase_res.data
+    
+    if not purchase:
+        raise HTTPException(status_code=404, detail="Purchase not found")
+        
+    if purchase.get("buyer_id") != user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+        
+    if purchase.get("status") not in ["completed", "released"]:
+        raise HTTPException(status_code=402, detail="Payment not completed")
+
+    # 3. Fetch raw PDF
+    file_path = purchase.get("notes", {}).get("file_path")
+    if not file_path:
+        raise HTTPException(status_code=404, detail="File path missing")
+
+    try:
+        pdf_bytes = supabase.storage.from_("raw_notes").download(file_path)
+    except Exception as e:
+        logger.error(f"Error downloading from storage: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve document")
+
+    # 4. Watermark PDF
+    buyer_email = user.email or "Buyer"
+    date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
+    watermark_text = f"Purchased by {buyer_email} on {date_str}"
+    
+    watermarked_pdf = add_watermark_to_pdf(pdf_bytes, watermark_text)
+
+    # 5. Release Escrow
+    if purchase.get("status") == "completed":
+        supabase.table("purchases").update({"status": "released"}).eq("id", purchase_id).execute()
+
+    # 6. Stream Response
+    return StreamingResponse(
+        BytesIO(watermarked_pdf),
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f"inline; filename=\"watermarked_{purchase_id}.pdf\""
+        }
+    )
+
