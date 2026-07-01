@@ -210,10 +210,10 @@ export default function NoteDetailPage() {
             <h1 className="text-4xl font-extrabold text-gray-900 leading-tight">{note.title}</h1>
 
             <div className="flex flex-wrap items-center gap-4 mt-4 text-sm text-gray-500">
-              <span className="flex items-center gap-1.5">
+              <Link href={`/seller/${note.seller_id}`} className="flex items-center gap-1.5 hover:text-blue-600 transition-colors">
                 <User className="h-4 w-4" />
                 {note.profiles?.full_name || 'Verified Seller'}
-              </span>
+              </Link>
               <span className="flex items-center gap-1.5">
                 <Clock className="h-4 w-4" />
                 {new Date(note.created_at).toLocaleDateString('en-ZA', {

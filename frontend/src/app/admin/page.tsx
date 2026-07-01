@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Toaster, toast } from 'sonner';
 import {
   ShieldAlert, CheckCircle2, XCircle, Clock, RefreshCw,
-  AlertTriangle, Search, Filter, ExternalLink
+  AlertTriangle, Search, Filter, ExternalLink, Download
 } from 'lucide-react';
 
 interface AdminPurchase {
@@ -44,6 +44,7 @@ export default function AdminDashboardPage() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [generatingLedger, setGeneratingLedger] = useState(false);
 
   const fetchPurchases = useCallback(async () => {
     setLoading(true);
@@ -152,6 +153,62 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleGenerateLedger = async () => {
+    setGeneratingLedger(true);
+    const toastId = toast.loading('Generating payout ledger...');
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      const res = await fetch('/api/admin/payouts', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+      });
+
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Failed to generate ledger');
+
+      if (!body.ledger || body.ledger.length === 0) {
+        toast.dismiss(toastId);
+        toast.info('No pending payouts found.');
+        return;
+      }
+
+      // Convert to CSV
+      const headers = ['Seller ID', 'Seller Name', 'Amount (ZAR)', 'Purchase IDs', 'Banking Details'];
+      const rows = body.ledger.map((row: any) => [
+        row.seller_id,
+        `"${row.seller_name}"`,
+        row.amount_zar,
+        `"${row.purchase_ids.join(',')}"`,
+        `"${JSON.stringify(row.payfast_details || {}).replace(/"/g, '""')}"`
+      ]);
+
+      const csvContent = [headers.join(','), ...rows.map((r: any) => r.join(','))].join('\n');
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `payout_ledger_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.dismiss(toastId);
+      toast.success('Ledger generated and downloaded successfully.');
+      fetchPurchases(); // Refresh the table
+    } catch (err: any) {
+      toast.dismiss(toastId);
+      toast.error(err.message || 'Failed to generate ledger');
+    } finally {
+      setGeneratingLedger(false);
+    }
+  };
+
   // Summary stats
   const stats = {
     total: purchases.length,
@@ -187,15 +244,33 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
-        <button
-          id="admin-refresh-btn"
-          onClick={fetchPurchases}
-          disabled={loading}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
+        <div className="flex gap-2">
+          <button
+            id="admin-generate-ledger-btn"
+            onClick={handleGenerateLedger}
+            disabled={generatingLedger}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-sm font-bold text-white hover:bg-blue-700 transition-colors disabled:opacity-50"
+          >
+            {generatingLedger ? (
+              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            Payout Ledger
+          </button>
+          <button
+            id="admin-refresh-btn"
+            onClick={fetchPurchases}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stat Cards */}

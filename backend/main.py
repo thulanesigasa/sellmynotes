@@ -81,8 +81,19 @@ async def process_note_background(record: dict):
         logger.info(f"Successfully processed note {note_id}. Status set to 'draft'.")
         
     except Exception as e:
-        logger.error(f"Error processing note {note_id}: {e}")
-        # Optionally update status to 'rejected' if we had a failure state
+        import traceback
+        error_trace = traceback.format_exc()
+        logger.error(f"FATAL ERROR processing note {note_id}: {e}\n{error_trace}")
+        
+        # Safely update note status to 'rejected' / 'failed'
+        try:
+            supabase.table("notes").update({
+                "status": "rejected", # using existing 'rejected' enum value
+                "description": f"Failed to process document automatically. Support team notified."
+            }).eq("id", note_id).execute()
+            logger.info(f"Note {note_id} marked as 'rejected' due to processing failure.")
+        except Exception as db_err:
+            logger.error(f"Failed to update note status to 'rejected' for {note_id}: {db_err}")
 
 @app.post("/webhooks/process-note")
 async def handle_process_note(
