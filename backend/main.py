@@ -10,6 +10,7 @@ from datetime import datetime
 from src.lib.supabase_client import supabase
 from src.document.processor import extract_text_from_pdf_bytes, add_watermark_to_pdf
 from src.ai_engine.openai_client import valuate_notes
+from src.utils.mailer import send_receipt_email
 
 # Explicitly load dotenv if we are running locally (fallback)
 from dotenv import load_dotenv
@@ -158,16 +159,42 @@ async def download_watermarked_note(purchase_id: str, authorization: str = Heade
     
     watermarked_pdf = add_watermark_to_pdf(pdf_bytes, watermark_text)
 
-    # 5. Release Escrow
+    # 5. Release Escrow & send receipt email
+    buyer_email = user.email or "buyer@student.co.za"
+    note_amount = purchase.get("amount_zar", 0)
+    note_title_str = purchase.get("notes", {}).get("file_path", "Note").split("/")[-1]
+
     if purchase.get("status") == "completed":
         supabase.table("purchases").update({"status": "released"}).eq("id", purchase_id).execute()
+        logger.info(f"Escrow released for purchase {purchase_id}")
+
+        # Generate a 24-hour signed URL pointing to the delivery page (browser download)
+        download_url = f"https://sellmynotes.co.za/library"
+        try:
+            signed = supabase.storage.from_("raw_notes").create_signed_url(file_path, expires_in=86400)
+            if signed and signed.get("signedURL"):
+                download_url = signed["signedURL"]
+        except Exception as sign_err:
+            logger.warning(f"Could not generate signed URL for email: {sign_err}")
+
+        # Fire-and-forget receipt email (non-blocking)
+        import asyncio
+        asyncio.create_task(
+            send_receipt_email(
+                to_email=buyer_email,
+                note_title=note_title_str,
+                amount_zar=note_amount,
+                purchase_id=purchase_id,
+                download_url=download_url,
+            )
+        )
 
     # 6. Stream Response
     return StreamingResponse(
         BytesIO(watermarked_pdf),
         media_type="application/pdf",
         headers={
-            "Content-Disposition": f"inline; filename=\"watermarked_{purchase_id}.pdf\""
+            "Content-Disposition": f'inline; filename="watermarked_{purchase_id}.pdf"'
         }
     )
 
