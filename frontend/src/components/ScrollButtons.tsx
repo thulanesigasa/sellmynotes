@@ -9,19 +9,15 @@ export default function ScrollButtons() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // Show "scroll to top" button if scrolled down more than 300px
+      // If we've scrolled down a bit, only show the Top button
       if (window.scrollY > 300) {
         setShowTopBtn(true);
-      } else {
-        setShowTopBtn(false);
-      }
-
-      // Hide "scroll to bottom" button if near the bottom of the page
-      const isNearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
-      if (isNearBottom) {
         setShowBottomBtn(false);
       } else {
-        setShowBottomBtn(true);
+        // We're near the top. Show the Bottom button (unless the page is very short)
+        setShowTopBtn(false);
+        const isNearBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+        setShowBottomBtn(!isNearBottom);
       }
     };
 
