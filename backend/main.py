@@ -74,10 +74,10 @@ async def process_note_background(record: dict):
         # 4. Update Database
         supabase.table("notes").update({
             "price_zar": final_price,
-            "status": "pending_approval"
+            "status": "draft"
         }).eq("id", note_id).execute()
         
-        logger.info(f"Successfully processed note {note_id}. Status set to 'pending_approval'.")
+        logger.info(f"Successfully processed note {note_id}. Status set to 'draft'.")
         
     except Exception as e:
         logger.error(f"Error processing note {note_id}: {e}")

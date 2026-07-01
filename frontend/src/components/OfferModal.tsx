@@ -28,7 +28,7 @@ export default function OfferModal({ note, onClose, onSuccess }: OfferModalProps
       
       const { error } = await supabase
         .from('notes')
-        .update({ status: 'active' })
+        .update({ status: 'published' })
         .eq('id', note.id);
 
       if (error) throw error;

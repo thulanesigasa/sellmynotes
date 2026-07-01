@@ -155,13 +155,13 @@ export default function LibraryPage() {
             Smart Valuing...
           </span>
         );
-      case 'pending_approval':
+      case 'draft':
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 animate-pulse">
             Valued (Action Needed)
           </span>
         );
-      case 'active':
+      case 'published':
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
             Active / Listed
@@ -306,7 +306,7 @@ export default function LibraryPage() {
                       {getStatusBadge(note.status)}
                     </div>
 
-                    {note.status === 'pending_approval' && (
+                    {note.status === 'draft' && (
                       <button
                         onClick={() => setSelectedNote(note)}
                         className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-bold rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-all"
@@ -315,7 +315,7 @@ export default function LibraryPage() {
                       </button>
                     )}
 
-                    {note.status === 'active' && (
+                    {note.status === 'published' && (
                       <div className="text-sm font-extrabold text-gray-900">
                         R{note.price_zar}
                       </div>

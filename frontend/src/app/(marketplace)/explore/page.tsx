@@ -85,7 +85,7 @@ function ExploreContent() {
           price_zar,
           likes!left(count)
         `)
-        .eq('status', 'active')
+        .eq('status', 'published')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
