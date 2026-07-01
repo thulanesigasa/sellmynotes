@@ -15,7 +15,7 @@ interface Note {
   likesCount: number;
 }
 
-export default function ExplorePage() {
+function ExploreContent() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -340,5 +340,17 @@ export default function ExplorePage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <React.Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <ExploreContent />
+    </React.Suspense>
   );
 }
