@@ -14,7 +14,8 @@ export async function GET(
     }
 
     // 2. Call the Python backend delivery endpoint
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000';
+    // Use private BACKEND_URL (server-side only) to avoid calling a non-existent public domain
+    const backendUrl = process.env.BACKEND_URL || 'http://127.0.0.1:8000';
     
     const response = await fetch(`${backendUrl}/delivery/download/${purchaseId}`, {
       headers: {
