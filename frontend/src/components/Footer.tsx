@@ -25,6 +25,12 @@ export default function Footer() {
                   <path fillRule="evenodd" d="M16.338 16.338H13.67V12.16c0-.995-.017-2.277-1.387-2.277-1.39 0-1.601 1.086-1.601 2.207v4.248H8.014v-8.59h2.559v1.174h.037c.356-.675 1.227-1.387 2.526-1.387 2.703 0 3.203 1.778 3.203 4.092v4.71zM5.005 6.575a1.548 1.548 0 11-.003-3.096 1.548 1.548 0 01.003 3.096zm-1.337 9.763H6.34v-8.59H3.667v8.59zM17.668 1H2.328C1.595 1 1 1.581 1 2.298v15.403C1 18.418 1.595 19 2.328 19h15.34c.734 0 1.332-.582 1.332-1.299V2.298C19 1.581 18.402 1 17.668 1z" clipRule="evenodd" />
                 </svg>
               </a>
+              <a href="https://www.tiktok.com/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-500">
+                <span className="sr-only">TikTok</span>
+                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.2 1.74 2.89 2.89 0 012.31-4.64 2.93 2.93 0 01.88.13V9.4a6.84 6.84 0 00-1-.05A6.28 6.28 0 005.4 15.6a6.28 6.28 0 006.28 6.28 6.28 6.28 0 006.28-6.28V9.32a8.27 8.27 0 004 1.1v-3.45a4.82 4.82 0 01-2.37-.28z" />
+                </svg>
+              </a>
             </div>
           </div>
 
@@ -32,9 +38,9 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-gray-900 tracking-wider uppercase mb-4">Product</h3>
             <ul className="space-y-3">
-              <li><Link href="/explore" className="text-sm text-gray-500 hover:text-gray-900">Features</Link></li>
-              <li><Link href="/explore" className="text-sm text-gray-500 hover:text-gray-900">Pricing</Link></li>
-              <li><Link href="/library" className="text-sm text-gray-500 hover:text-gray-900">Dashboard</Link></li>
+              <li><Link href="/features" className="text-sm text-gray-500 hover:text-gray-900">Features</Link></li>
+              <li><Link href="/pricing" className="text-sm text-gray-500 hover:text-gray-900">Pricing</Link></li>
+              <li><Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900">Dashboard</Link></li>
             </ul>
           </div>
 

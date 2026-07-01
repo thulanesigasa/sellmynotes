@@ -203,9 +203,9 @@ export default function Navbar() {
                 </div>
 
                 <div className="relative flex items-center space-x-2 border-l border-gray-200 pl-4">
-                  <span className="text-sm text-gray-700 font-medium hidden md:block">
+                  <Link href="/profile" className="text-sm text-gray-700 font-medium hidden md:block hover:text-blue-600 transition-colors">
                     {session.user.user_metadata?.username || session.user.email}
-                  </span>
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-full hover:bg-red-50"
