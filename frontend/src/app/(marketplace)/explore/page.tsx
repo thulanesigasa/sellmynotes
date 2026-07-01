@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Toaster, toast } from 'sonner';
-import { Search, GraduationCap, CreditCard, Heart, Bookmark } from 'lucide-react';
+import { Search, GraduationCap, CreditCard, Heart, Bookmark, Filter } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 
 interface Note {
@@ -18,6 +18,8 @@ interface Note {
 function ExploreContent() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [search, setSearch] = useState('');
+  const [selectedInstitution, setSelectedInstitution] = useState('');
+  const [selectedCourseCode, setSelectedCourseCode] = useState('');
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   
@@ -73,7 +75,6 @@ function ExploreContent() {
 
   const fetchNotes = async () => {
     try {
-      // In Supabase, you can fetch relations with count. We fetch likes(count) to show how many likes a note has.
       const { data, error } = await supabase
         .from('notes')
         .select(`
@@ -84,7 +85,7 @@ function ExploreContent() {
           price_zar,
           likes!left(count)
         `)
-        .eq('status', 'published')
+        .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -101,7 +102,7 @@ function ExploreContent() {
       setNotes(formattedNotes);
     } catch (error: any) {
       toast.error('Failed to load notes');
-      console.error('Fetch Notes Error:', JSON.stringify(error, null, 2), error.message);
+      console.error('Fetch Notes Error:', error);
     } finally {
       setLoading(false);
     }
@@ -136,7 +137,6 @@ function ExploreContent() {
       }
     } catch (e) {
       console.error("Error toggling like:", e);
-      // Revert on error could be implemented here
     }
   };
 
@@ -222,33 +222,72 @@ function ExploreContent() {
     }
   };
 
-  const filteredNotes = notes.filter(n => 
-    n.title.toLowerCase().includes(search.toLowerCase()) ||
-    n.course_code.toLowerCase().includes(search.toLowerCase()) ||
-    n.institution.toLowerCase().includes(search.toLowerCase())
-  );
+  // Get unique filter lists dynamically
+  const uniqueInstitutions = Array.from(new Set(notes.map(n => n.institution).filter(Boolean)));
+  const uniqueCourseCodes = Array.from(new Set(notes.map(n => n.course_code).filter(Boolean)));
+
+  const filteredNotes = notes.filter(n => {
+    const matchesSearch = 
+      n.title.toLowerCase().includes(search.toLowerCase()) ||
+      n.course_code.toLowerCase().includes(search.toLowerCase()) ||
+      n.institution.toLowerCase().includes(search.toLowerCase());
+      
+    const matchesInstitution = !selectedInstitution || n.institution === selectedInstitution;
+    const matchesCourseCode = !selectedCourseCode || n.course_code === selectedCourseCode;
+    
+    return matchesSearch && matchesInstitution && matchesCourseCode;
+  });
 
   return (
     <div className="max-w-6xl mx-auto p-6 md:p-12">
       <Toaster position="top-right" richColors />
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+      <div className="flex flex-col mb-10 gap-6">
         <div>
           <h1 className="text-4xl font-extrabold text-gray-900">Explore Feed</h1>
           <p className="text-gray-500 mt-2">Discover, like, and save top-tier study material.</p>
         </div>
         
-        <div className="relative w-full md:w-96">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+        {/* Advanced Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+          <div className="relative md:col-span-2">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm transition-all"
+              placeholder="Search title, course code..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
-          <input
-            type="text"
-            className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm shadow-sm transition-all"
-            placeholder="Search by course, institution, or title..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+
+          <div>
+            <select
+              value={selectedInstitution}
+              onChange={(e) => setSelectedInstitution(e.target.value)}
+              className="block w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm transition-all text-gray-700"
+            >
+              <option value="">All Institutions</option>
+              {uniqueInstitutions.map((inst) => (
+                <option key={inst} value={inst}>{inst}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <select
+              value={selectedCourseCode}
+              onChange={(e) => setSelectedCourseCode(e.target.value)}
+              className="block w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm transition-all text-gray-700"
+            >
+              <option value="">All Course Codes</option>
+              {uniqueCourseCodes.map((code) => (
+                <option key={code} value={code}>{code}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -260,7 +299,7 @@ function ExploreContent() {
         <div className="text-center bg-gray-50 rounded-2xl p-16 border border-gray-100">
           <Search className="mx-auto h-12 w-12 text-gray-400 mb-4" />
           <h3 className="text-lg font-medium text-gray-900">No notes found</h3>
-          <p className="text-gray-500 mt-1">Try adjusting your search terms.</p>
+          <p className="text-gray-500 mt-1">Try adjusting your filters or search terms.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

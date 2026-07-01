@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, BackgroundTasks, Header, Depends
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import logging
+import os
 from typing import Optional
 from io import BytesIO
 from datetime import datetime
@@ -66,24 +67,35 @@ async def process_note_background(record: dict):
         valuation = await valuate_notes(text, title, institution)
         suggested_price = valuation.get("suggested_price_zar", 50)
         
-        logger.info(f"AI Valuation Complete: R{suggested_price}. Updating Database...")
+        # Calculate Base Price + 40% margin
+        final_price = round(suggested_price * 1.40, 2)
+        
+        logger.info(f"Smart Valuation Complete. Base: R{suggested_price}, Final (with 40% margin): R{final_price}. Updating Database...")
         # 4. Update Database
         supabase.table("notes").update({
-            "price_zar": suggested_price,
-            "status": "published"
+            "price_zar": final_price,
+            "status": "pending_approval"
         }).eq("id", note_id).execute()
         
-        logger.info(f"Successfully processed note {note_id}. Status set to 'published'.")
+        logger.info(f"Successfully processed note {note_id}. Status set to 'pending_approval'.")
         
     except Exception as e:
         logger.error(f"Error processing note {note_id}: {e}")
         # Optionally update status to 'rejected' if we had a failure state
 
 @app.post("/webhooks/process-note")
-async def handle_process_note(payload: WebhookPayload, background_tasks: BackgroundTasks):
+async def handle_process_note(
+    payload: WebhookPayload, 
+    background_tasks: BackgroundTasks,
+    x_webhook_secret: Optional[str] = Header(None)
+):
     """
     Supabase Webhook endpoint triggered on new 'notes' table inserts.
     """
+    secret = os.environ.get("WEBHOOK_SECRET", "super-secret-key-123")
+    if secret and x_webhook_secret != secret:
+        raise HTTPException(status_code=401, detail="Invalid webhook secret")
+
     if payload.table != "notes" or payload.type != "INSERT":
         raise HTTPException(status_code=400, detail="Invalid webhook trigger type or table")
         
