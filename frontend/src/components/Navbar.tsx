@@ -128,9 +128,6 @@ export default function Navbar() {
           <div className="flex">
             <Link href="/" className="flex-shrink-0 flex items-center group">
               <BookOpen className="h-8 w-8 text-blue-600 group-hover:text-blue-700 transition-colors" />
-              <span className="ml-2 text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
-                SellMyNotes
-              </span>
             </Link>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
               <Link href="/explore" className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${pathname === '/explore' ? 'border-blue-600 text-gray-900' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'}`}>
