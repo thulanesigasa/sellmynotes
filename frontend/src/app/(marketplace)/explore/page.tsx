@@ -21,7 +21,12 @@ function ExploreContent() {
   const [selectedInstitution, setSelectedInstitution] = useState('');
   const [selectedCourseCode, setSelectedCourseCode] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const PAGE_SIZE = 12;
   
   const [userId, setUserId] = useState<string | null>(null);
   const [userLikes, setUserLikes] = useState<Set<string>>(new Set());
@@ -43,7 +48,7 @@ function ExploreContent() {
         setUserId(session.user.id);
         fetchUserInteractions(session.user.id);
       }
-      fetchNotes();
+      fetchNotes(0, false);
     });
   }, [searchParams]);
 
@@ -73,7 +78,10 @@ function ExploreContent() {
     }
   };
 
-  const fetchNotes = async () => {
+  const fetchNotes = async (pageIndex = 0, append = false) => {
+    if (!append) setLoading(true);
+    else setLoadingMore(true);
+    
     try {
       const { data, error } = await supabase
         .from('notes')
@@ -86,7 +94,8 @@ function ExploreContent() {
           likes!left(count)
         `)
         .eq('status', 'published')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(pageIndex * PAGE_SIZE, (pageIndex + 1) * PAGE_SIZE - 1);
 
       if (error) throw error;
       
@@ -99,13 +108,26 @@ function ExploreContent() {
         likesCount: note.likes?.[0]?.count || 0
       }));
 
-      setNotes(formattedNotes);
+      setHasMore(formattedNotes.length === PAGE_SIZE);
+
+      if (append) {
+        setNotes(prev => [...prev, ...formattedNotes]);
+      } else {
+        setNotes(formattedNotes);
+      }
     } catch (error: any) {
       toast.error('Failed to load notes');
       console.error('Fetch Notes Error:', error);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
+  };
+
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchNotes(nextPage, true);
   };
 
   const toggleLike = async (noteId: string) => {
@@ -376,6 +398,18 @@ function ExploreContent() {
               </div>
             );
           })}
+        </div>
+      )}
+      
+      {!loading && filteredNotes.length > 0 && hasMore && (
+        <div className="mt-10 flex justify-center">
+          <button
+            onClick={handleLoadMore}
+            disabled={loadingMore}
+            className="px-6 py-2.5 bg-white border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:opacity-50"
+          >
+            {loadingMore ? 'Loading...' : 'Load More'}
+          </button>
         </div>
       )}
     </div>
