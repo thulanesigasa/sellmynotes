@@ -77,7 +77,7 @@ export async function POST(req: Request) {
       .select('id, full_name, payfast_payout_details')
       .in('id', sellerIds);
 
-    const sellerMap = new Map((sellers || []).map(s => [s.id, s]));
+    const sellerMap = new Map((sellers || []).map((s: any) => [s.id, s]));
 
     // Format the ledger for the frontend (CSV generation)
     const ledger = Object.entries(sellerLedger).map(([sellerId, data]) => {
