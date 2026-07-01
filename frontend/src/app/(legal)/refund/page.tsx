@@ -2,12 +2,13 @@ import React from 'react';
 
 export default function RefundPage() {
   return (
-    <div className="bg-white py-16 px-6 lg:px-8 min-h-screen">
-      <div className="mx-auto max-w-4xl text-base leading-7 text-gray-700 mt-16">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl mb-6">Comprehensive Refund & Returns Policy</h1>
-        <p className="text-xl text-gray-500 mb-12 border-b border-gray-100 pb-8">Please read this highly detailed document carefully before making any purchases on the sellmynotes platform. It strictly outlines your rights, limitations, and responsibilities regarding refunds for digital educational goods.</p>
-        
-        <div className="space-y-12">
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="border-b border-gray-100 pb-8 mb-8">
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl mb-6">Comprehensive Refund & Returns Policy</h1>
+        <p className="text-xl text-gray-500 pb-8">Please read this highly detailed document carefully before making any purchases on the sellmynotes platform. It strictly outlines your rights, limitations, and responsibilities regarding refunds for digital educational goods.</p>
+      </div>
+
+      <div className="space-y-12 prose prose-lg prose-blue max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:font-medium prose-p:text-gray-600 prose-li:text-gray-600">
           <section>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">1. The Absolute General Rule for Digital Goods</h2>
             <p className="text-lg leading-8 mb-4">
@@ -94,7 +95,6 @@ export default function RefundPage() {
               Filing a fraudulent chargeback or dispute directly with your bank or credit card provider, rather than following this established refund policy, is a severe violation of our Terms of Service. In the event of an unjustified chargeback, your sellmynotes account will be immediately, automatically, and permanently suspended. Furthermore, we will systematically submit all transaction records, IP logs, device fingerprints, and download history to the bank and PayFast to aggressively contest the dispute. We urge you to contact our support team to resolve issues amicably first.
             </p>
           </section>
-        </div>
       </div>
     </div>
   );

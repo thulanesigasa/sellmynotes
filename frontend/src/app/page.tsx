@@ -29,16 +29,16 @@ export default function Home() {
           {/* CTA Buttons */}
           <div className="mt-10 flex items-center justify-center gap-x-4">
             <Link
-              href="/seller"
+              href="/login"
               className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-all"
             >
-              Go to Dashboard &rarr;
+              Login
             </Link>
             <Link 
-              href="/pricing" 
+              href="/signup" 
               className="rounded-lg bg-white px-6 py-3 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-all"
             >
-              View Pricing
+              Sign up
             </Link>
           </div>
         </div>

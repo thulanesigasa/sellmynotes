@@ -2,12 +2,13 @@ import React from 'react';
 
 export default function TermsPage() {
   return (
-    <div className="bg-white py-16 px-6 lg:px-8 min-h-screen">
-      <div className="mx-auto max-w-4xl text-base leading-7 text-gray-700 mt-16">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl mb-4">Comprehensive Terms of Service</h1>
-        <p className="text-sm text-gray-500 mb-12">Last Updated: July 1, 2026</p>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="border-b border-gray-100 pb-8 mb-8">
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl mb-2">Comprehensive Terms of Service</h1>
+        <p className="text-sm font-medium text-blue-600">Last Updated: July 1, 2026</p>
+      </div>
 
-        <div className="space-y-12 prose prose-blue max-w-none">
+      <div className="prose prose-lg prose-blue max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:font-medium prose-p:text-gray-600 prose-li:text-gray-600">
           <section>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">1. Legally Binding Agreement</h2>
             <p>
@@ -115,7 +116,6 @@ export default function TermsPage() {
               <p className="mt-2">Address: Kelvin, Sandton, South Africa, 2090</p>
             </div>
           </section>
-        </div>
       </div>
     </div>
   );

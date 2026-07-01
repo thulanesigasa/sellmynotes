@@ -75,7 +75,7 @@ function ExploreContent() {
           course_code, 
           institution, 
           price_zar,
-          likes!left(count)
+          likes(count)
         `)
         .eq('status', 'published')
         .order('created_at', { ascending: false })

@@ -3,9 +3,10 @@ import { Download, MonitorPlay, Infinity, ShieldCheck, MailCheck, HardDrive, Zap
 
 export default function ShippingPage() {
   return (
-    <div className="bg-white py-16 px-6 lg:px-8 min-h-screen">
-      <div className="mx-auto max-w-5xl text-base leading-7 text-gray-700 mt-16">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl mb-6">Comprehensive Digital Shipping & Delivery Policy</h1>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="border-b border-gray-100 pb-8 mb-8">
+        <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl mb-6">Comprehensive Digital Shipping & Delivery Policy</h1>
+      </div>
         
         <div className="bg-blue-50 border border-blue-100 p-8 rounded-2xl mb-12">
           <p className="text-xl font-medium text-blue-900">
@@ -101,7 +102,6 @@ export default function ShippingPage() {
             </div>
           </section>
         </div>
-      </div>
     </div>
   );
 }
