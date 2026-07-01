@@ -10,7 +10,7 @@ from datetime import datetime
 from src.lib.supabase_client import supabase
 from src.document.processor import extract_text_from_pdf_bytes, add_watermark_to_pdf
 from src.ai_engine.openai_client import valuate_notes
-from src.utils.mailer import send_receipt_email
+from src.utils.mailer import send_receipt_email, send_note_published_email
 
 # Explicitly load dotenv if we are running locally (fallback)
 from dotenv import load_dotenv
@@ -118,6 +118,50 @@ async def handle_process_note(
     background_tasks.add_task(process_note_background, record)
     
     return {"status": "accepted", "message": f"Processing note {record.get('id')} in background"}
+
+async def handle_published_email_background(record: dict):
+    note_id = record.get("id")
+    seller_id = record.get("seller_id")
+    title = record.get("title", "Your Note")
+    
+    if not supabase or not seller_id:
+        return
+        
+    # Fetch seller email
+    try:
+        user_res = supabase.auth.admin.get_user_by_id(seller_id)
+        seller_email = user_res.user.email
+        if seller_email:
+            note_url = f"https://sellmynotes.co.za/note/{note_id}"
+            await send_note_published_email(seller_email, title, note_url)
+    except Exception as e:
+        logger.error(f"Failed to fetch seller email or send publish notification for {note_id}: {e}")
+
+@app.post("/webhooks/note-published")
+async def handle_note_published(
+    payload: WebhookPayload, 
+    background_tasks: BackgroundTasks,
+    x_webhook_secret: Optional[str] = Header(None)
+):
+    """
+    Supabase Webhook endpoint triggered on 'notes' table status updates to 'published'.
+    """
+    secret = os.environ.get("WEBHOOK_SECRET", "super-secret-key-123")
+    if secret and x_webhook_secret != secret:
+        raise HTTPException(status_code=401, detail="Invalid webhook secret")
+
+    if payload.table != "notes" or payload.type != "UPDATE":
+        raise HTTPException(status_code=400, detail="Invalid webhook trigger type or table")
+        
+    record = payload.record
+    old_record = payload.old_record or {}
+    
+    # Check if status changed to published
+    if record.get("status") == "published" and old_record.get("status") != "published":
+        background_tasks.add_task(handle_published_email_background, record)
+        return {"status": "accepted", "message": f"Sending published email for note {record.get('id')}"}
+        
+    return {"message": "Not a status change to published. Ignored."}
 
 @app.get("/delivery/download/{purchase_id}")
 async def download_watermarked_note(purchase_id: str, authorization: str = Header(...)):

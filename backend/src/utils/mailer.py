@@ -183,3 +183,52 @@ async def send_receipt_email(
     except Exception as e:
         logger.error(f"Failed to send receipt email to {to_email}: {e}")
         return False
+
+def _build_note_published_html(seller_email: str, note_title: str, note_url: str) -> str:
+    return f"""
+<!DOCTYPE html>
+<html>
+<body style="font-family:sans-serif;background:#f3f4f6;padding:40px;">
+  <div style="background:#fff;padding:40px;border-radius:8px;max-width:600px;margin:0 auto;">
+    <h2 style="color:#2563eb;">Great News!</h2>
+    <p>Hi {seller_email},</p>
+    <p>Your note <strong>"{note_title}"</strong> is now live on the marketplace!</p>
+    <a href="{note_url}" style="display:inline-block;background:#2563eb;color:#fff;padding:12px 24px;text-decoration:none;border-radius:6px;margin-top:20px;">
+      View Your Note
+    </a>
+  </div>
+</body>
+</html>
+"""
+
+async def send_note_published_email(to_email: str, note_title: str, note_url: str) -> bool:
+    if not MAILER_USER or not MAILER_PASS:
+        logger.warning("Mailer not configured. Skipping note published email.")
+        return False
+        
+    try:
+        import aiosmtplib
+        html_body = _build_note_published_html(to_email, note_title, note_url)
+        
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"Your note '{note_title}' is now live!"
+        msg["From"] = f"{MAILER_FROM_NAME} <{MAILER_FROM}>"
+        msg["To"] = to_email
+        
+        plain = f"Hi {to_email},\nYour note '{note_title}' is now live on the marketplace!\nView it here: {note_url}"
+        msg.attach(MIMEText(plain, "plain"))
+        msg.attach(MIMEText(html_body, "html"))
+        
+        await aiosmtplib.send(
+            msg,
+            hostname=MAILER_HOST,
+            port=MAILER_PORT,
+            username=MAILER_USER,
+            password=MAILER_PASS,
+            start_tls=True,
+        )
+        logger.info(f"Published email sent to {to_email}.")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to send published email to {to_email}: {e}")
+        return False
