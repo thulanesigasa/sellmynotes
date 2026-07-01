@@ -5,7 +5,7 @@ export default function FAQPage() {
     {
       category: "General Questions",
       items: [
-        { q: "What is SellMyNotes?", a: "SellMyNotes is a premium digital marketplace specifically designed for South African students to buy and sell high-quality, university-specific study materials, summaries, and past paper solutions." },
+        { q: "What is sellmynotes?", a: "sellmynotes is a premium digital marketplace specifically designed for South African students to buy and sell high-quality, university-specific study materials, summaries, and past paper solutions." },
         { q: "Who can use the platform?", a: "Anyone can purchase notes! However, to sell notes, you must be a registered user with a valid South African bank account (to receive payouts via PayFast)." },
         { q: "Are the notes verified?", a: "While we do not manually read every document uploaded, our platform relies on a community review and rating system. Buyers leave reviews, ensuring that high-quality notes rank higher in search results." }
       ]
@@ -41,7 +41,7 @@ export default function FAQPage() {
     <div className="bg-white py-16 px-6 lg:px-8 min-h-screen">
       <div className="mx-auto max-w-4xl mt-16">
         <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl mb-6">Frequently Asked Questions</h1>
-        <p className="text-lg text-gray-600 mb-12">Find answers to the most common questions about buying, selling, and managing your account on SellMyNotes.</p>
+        <p className="text-lg text-gray-600 mb-12">Find answers to the most common questions about buying, selling, and managing your account on sellmynotes.</p>
         
         <div className="space-y-16">
           {faqs.map((section, idx) => (

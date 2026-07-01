@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Column */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold text-gray-900">SellMyNotes</h3>
+            <h3 className="text-xl font-bold text-gray-900">sellmynotes</h3>
             <p className="text-sm text-gray-500 max-w-xs">
               The premium marketplace for South African students to securely sell and buy study materials.
             </p>
@@ -68,7 +68,7 @@ export default function Footer() {
         
         <div className="mt-12 pt-8 border-t border-gray-200">
           <p className="text-sm text-gray-400 text-center">
-            &copy; {new Date().getFullYear()} SellMyNotes. All rights reserved.
+            &copy; {new Date().getFullYear()} sellmynotes. All rights reserved.
           </p>
         </div>
       </div>
