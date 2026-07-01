@@ -4,9 +4,14 @@ export interface NoteMetadata {
   title: string;
   institution: string;
   course_code: string;
+  description: string;
 }
 
-export async function uploadFileDirectly(file: File, metadata: NoteMetadata) {
+export async function uploadRawNote(
+  file: File,
+  metadata: NoteMetadata,
+  onProgress?: (progress: number) => void
+) {
   try {
     // 1. Auth Check
     const { data: { session } } = await supabase.auth.getSession();
@@ -24,20 +29,41 @@ export async function uploadFileDirectly(file: File, metadata: NoteMetadata) {
       .from('raw_notes')
       .createSignedUploadUrl(fileName);
 
-    if (signedUrlError) {
-      throw new Error(`Failed to generate signed URL: ${signedUrlError.message}`);
+    if (signedUrlError || !signedUrlData) {
+      throw new Error(`Failed to generate signed URL: ${signedUrlError?.message || 'Unknown error'}`);
     }
 
-    const { token } = signedUrlData;
+    const { signedUrl } = signedUrlData;
 
-    // 3. Upload: PUT directly using the signed URL token
-    const { error: uploadError } = await supabase.storage
-      .from('raw_notes')
-      .uploadToSignedUrl(fileName, token, file);
+    // 3. Upload: PUT directly using XMLHttpRequest for native progress tracking
+    await new Promise<void>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', signedUrl);
+      xhr.setRequestHeader('Content-Type', file.type);
 
-    if (uploadError) {
-      throw new Error(`Upload failed: ${uploadError.message}`);
-    }
+      if (onProgress) {
+        xhr.upload.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            onProgress(percent);
+          }
+        };
+      }
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve();
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}: ${xhr.statusText}`));
+        }
+      };
+
+      xhr.onerror = () => {
+        reject(new Error('Network error during upload.'));
+      };
+
+      xhr.send(file);
+    });
 
     // 4. Database Sync: Insert record
     const { data: noteData, error: dbError } = await supabase
@@ -48,9 +74,10 @@ export async function uploadFileDirectly(file: File, metadata: NoteMetadata) {
           title: metadata.title,
           institution: metadata.institution,
           course_code: metadata.course_code,
+          description: metadata.description,
           file_path: fileName,
           status: 'processing',
-          price_zar: 0 // Placeholder until AI processes it
+          price_zar: 0 // Placeholder until valuation algorithm processes it
         }
       ])
       .select()
