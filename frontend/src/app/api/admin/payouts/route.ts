@@ -58,7 +58,7 @@ export async function POST(req: Request) {
     }
 
     // 4. Update payout_status to 'processing' for the included purchases
-    const purchaseIdsToUpdate = purchases.map(p => p.id);
+    const purchaseIdsToUpdate = purchases.map((p: any) => p.id);
     if (purchaseIdsToUpdate.length > 0) {
       const { error: updateError } = await supabaseAdmin
         .from('purchases')
