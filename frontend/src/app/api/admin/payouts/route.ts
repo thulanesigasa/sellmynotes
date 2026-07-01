@@ -81,7 +81,7 @@ export async function POST(req: Request) {
 
     // Format the ledger for the frontend (CSV generation)
     const ledger = Object.entries(sellerLedger).map(([sellerId, data]) => {
-      const seller = sellerMap.get(sellerId);
+      const seller: any = sellerMap.get(sellerId);
       return {
         seller_id: sellerId,
         seller_name: seller?.full_name || 'Unknown',
