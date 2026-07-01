@@ -69,7 +69,8 @@ export async function middleware(request: NextRequest) {
 
   // Unauthenticated user checks
   if (!user) {
-    if (path.startsWith('/dashboard') || path.startsWith('/admin')) {
+    const protectedRoutes = ['/seller', '/library', '/upload', '/wishlist', '/profile'];
+    if (protectedRoutes.some(route => path.startsWith(route)) || path.startsWith('/admin')) {
       const url = request.nextUrl.clone();
       url.pathname = '/login';
       return NextResponse.redirect(url);
@@ -91,7 +92,7 @@ export async function middleware(request: NextRequest) {
     if (!profile || profile.role !== 'admin') {
       // Authenticated but not admin — redirect to dashboard
       const url = request.nextUrl.clone();
-      url.pathname = '/dashboard';
+      url.pathname = '/seller';
       return NextResponse.redirect(url);
     }
   }

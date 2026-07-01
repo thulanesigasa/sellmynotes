@@ -99,8 +99,10 @@ export default function UploadPage() {
       setMetadata({ title: '', institution: '', course_code: '', description: '' });
       if (fileInputRef.current) fileInputRef.current.value = '';
       
-      // Redirect user to the dashboard library
-      router.push('/dashboard');
+      // Redirect user
+      setTimeout(() => {
+        router.push('/seller');
+      }, 1500);
     } catch (error: any) {
       toast.dismiss();
       toast.error(`Upload failed: ${error.message || 'Unknown network error'}`);
