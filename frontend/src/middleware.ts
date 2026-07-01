@@ -37,7 +37,7 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
-  // 2. If no user from cookie, check if this is an API route and check Authorization header (Bearer token)
+  // 2. If no user from cookie, check Authorization header (for API routes)
   if (!user && path.startsWith('/api') && request.headers.has('Authorization')) {
     const authHeader = request.headers.get('Authorization');
     if (authHeader) {
@@ -64,13 +64,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 3. Route guarding logic:
-  // Exclude public webhook endpoints (like PayFast ITN) from auth checks
+  // 3. Route guarding logic
   const isPublicApiRoute = path.startsWith('/api/payfast/itn');
 
-  // If a user is NOT authenticated and attempts to access any route under /dashboard/* or api/* (excluding public ones)
+  // Unauthenticated user checks
   if (!user) {
-    if (path.startsWith('/dashboard')) {
+    if (path.startsWith('/dashboard') || path.startsWith('/admin')) {
       const url = request.nextUrl.clone();
       url.pathname = '/login';
       return NextResponse.redirect(url);
@@ -81,10 +80,26 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // If a user IS authenticated and attempts to access /login or /signup, redirect to dashboard/library
+  // 4. Admin route guard — role must be 'admin' in profiles table
+  if (user && (path.startsWith('/admin') || path.startsWith('/api/admin'))) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (!profile || profile.role !== 'admin') {
+      // Authenticated but not admin — redirect to dashboard
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // 5. Redirect authenticated users away from auth pages
   if (user && (path === '/login' || path === '/signup')) {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard/library';
+    url.pathname = '/library';
     return NextResponse.redirect(url);
   }
 
