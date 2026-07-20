@@ -8,6 +8,8 @@ export interface NoteMetadata {
   price_zar: number;
   ocr_text?: string;
   suggested_price?: number;
+  ai_review_comment?: string;
+  ai_review_rating?: number;
 }
 
 export async function uploadRawNote(
@@ -78,7 +80,7 @@ export async function uploadRawNote(
       onProgress?.(100);
     }
 
-    // 4. Database Sync: Insert record with status 'processing'
+    // 4. Database Sync: Insert record with status 'draft'
     const { data: noteData, error: dbError } = await supabase
       .from('notes')
       .insert([
@@ -92,7 +94,9 @@ export async function uploadRawNote(
           status: 'draft',
           price_zar: metadata.price_zar,
           ocr_text: metadata.ocr_text || null,
-          suggested_price: metadata.suggested_price || null
+          suggested_price: metadata.suggested_price || null,
+          ai_review_comment: metadata.ai_review_comment || null,
+          ai_review_rating: metadata.ai_review_rating || null
         }
       ])
       .select()

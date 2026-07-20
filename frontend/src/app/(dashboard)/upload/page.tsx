@@ -75,6 +75,8 @@ export default function UploadPage() {
           price_zar: result.valuation.final_price_zar,
           ocr_text: result.ocr_text,
           suggested_price: result.valuation.base_price_zar,
+          ai_review_comment: result.extracted_metadata.ai_review_comment,
+          ai_review_rating: result.extracted_metadata.ai_review_rating,
         });
         toast.dismiss(toastId);
         toast.success('AI Scanner completed! Metadata & valuation suggestions successfully extracted.');
@@ -150,7 +152,7 @@ export default function UploadPage() {
       
       // Reset form state
       setFile(null);
-      setMetadata({ title: '', institution: '', course_code: '', description: '', price_zar: 0, ocr_text: '', suggested_price: 0 });
+      setMetadata({ title: '', institution: '', course_code: '', description: '', price_zar: 0, ocr_text: '', suggested_price: 0, ai_review_comment: '', ai_review_rating: 0 });
       setAnalysisResult(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       
@@ -316,15 +318,24 @@ export default function UploadPage() {
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+              <div className="flex justify-between items-center">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                {analysisResult && (
+                  <span className="inline-flex items-center gap-1 text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100 animate-pulse font-medium">
+                    <Sparkles className="h-3 w-3 fill-blue-100" /> AI Refined Summary
+                  </span>
+                )}
+              </div>
               <textarea
                 id="description"
                 name="description"
                 value={metadata.description}
                 onChange={handleChange}
                 placeholder="Describe your study notes (topics covered, chapter summaries, format, neatness)..."
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                rows={6}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${
+                  analysisResult ? 'border-blue-300 ring-2 ring-blue-50 bg-blue-50/5' : 'border-gray-300'
+                }`}
                 required
               />
             </div>
