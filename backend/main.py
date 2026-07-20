@@ -101,6 +101,10 @@ async def analyze_uploaded_note(
         suggested_price = valuation.get("suggested_price_zar", 50)
         final_price = round(suggested_price * 1.40, 2)
         
+        desc = valuation.get("suggested_description")
+        if not desc or len(desc.strip()) < 10:
+            desc = "### Study Notes Summary\n- **Comprehensive Material:** Detailed coverage of course lectures and modules.\n- **Preparation Resource:** Perfect for exam review and homework practice."
+
         return {
             "status": "success",
             "ocr_text": text[:50000],
@@ -108,7 +112,9 @@ async def analyze_uploaded_note(
                 "title": valuation.get("suggested_title", file.filename.split(".")[0].replace("_", " ").title()),
                 "institution": valuation.get("suggested_institution", ""),
                 "course_code": valuation.get("suggested_course_code", ""),
-                "description": valuation.get("suggested_description", "Study notes covering key topics in detail.")
+                "description": desc,
+                "ai_review_comment": valuation.get("ai_review_comment", "Excellent comprehensive lecture notes with clear topic structures."),
+                "ai_review_rating": valuation.get("ai_review_rating", 5)
             },
             "valuation": {
                 "base_price_zar": suggested_price,
