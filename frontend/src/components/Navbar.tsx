@@ -11,6 +11,7 @@ interface Notification {
   type: string;
   is_read: boolean;
   created_at: string;
+  note_id: string;
   profiles: {
     first_name: string;
     surname: string;
@@ -34,7 +35,7 @@ export default function Navbar() {
       const { data, error } = await supabase
         .from('notifications')
         .select(`
-          id, type, is_read, created_at,
+          id, type, is_read, created_at, note_id,
           profiles:actor_id (first_name, surname),
           notes:note_id (title)
         `)
@@ -172,38 +173,44 @@ export default function Navbar() {
                         ) : (
                           <ul className="divide-y divide-gray-100">
                             {notifications.map((notification) => (
-                              <li key={notification.id} className={`p-4 hover:bg-gray-50 transition-colors ${!notification.is_read ? 'bg-blue-50/50' : ''}`}>
-                                <div className="flex space-x-3">
-                                  <div className="flex-shrink-0 mt-0.5">
-                                    {notification.type === 'like' && (
-                                      <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-                                    )}
-                                    {notification.type === 'wishlist' && (
-                                      <Bookmark className="h-5 w-5 text-blue-500 fill-blue-500" />
-                                    )}
-                                    {notification.type === 'payment' && (
-                                      <CreditCard className="h-5 w-5 text-green-500 fill-green-100" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-gray-900">
-                                      <span className="font-semibold">{notification.profiles.first_name} {notification.profiles.surname}</span> 
-                                      {notification.type === 'like' && ' liked your note '}
-                                      {notification.type === 'wishlist' && ' added your note '}
-                                      {notification.type === 'payment' && ' purchased your note '}
-                                      <span className="font-medium text-blue-600">"{notification.notes.title}"</span>
-                                      {notification.type === 'wishlist' && ' to their wishlist'}
-                                    </p>
-                                    <div className="flex items-center justify-between mt-1">
-                                      <p className="text-xs text-gray-500">
-                                        {new Date(notification.created_at).toLocaleDateString()} at {new Date(notification.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                      </p>
-                                      {!notification.is_read && (
-                                        <span className="h-1.5 w-1.5 rounded-full bg-blue-600" title="New notification" />
+                              <li key={notification.id} className={`hover:bg-gray-50 transition-colors ${!notification.is_read ? 'bg-blue-50/50' : ''}`}>
+                                <Link 
+                                  href={`/note/${notification.note_id}`}
+                                  onClick={() => setShowNotifications(false)}
+                                  className="block p-4"
+                                >
+                                  <div className="flex space-x-3">
+                                    <div className="flex-shrink-0 mt-0.5">
+                                      {notification.type === 'like' && (
+                                        <Heart className="h-5 w-5 text-red-500 fill-red-500" />
+                                      )}
+                                      {notification.type === 'wishlist' && (
+                                        <Bookmark className="h-5 w-5 text-blue-500 fill-blue-500" />
+                                      )}
+                                      {notification.type === 'payment' && (
+                                        <CreditCard className="h-5 w-5 text-green-500 fill-green-100" />
                                       )}
                                     </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm text-gray-900">
+                                        <span className="font-semibold">{notification.profiles.first_name} {notification.profiles.surname}</span> 
+                                        {notification.type === 'like' && ' liked your note '}
+                                        {notification.type === 'wishlist' && ' added your note '}
+                                        {notification.type === 'payment' && ' purchased your note '}
+                                        <span className="font-medium text-blue-600">"{notification.notes.title}"</span>
+                                        {notification.type === 'wishlist' && ' to their wishlist'}
+                                      </p>
+                                      <div className="flex items-center justify-between mt-1">
+                                        <p className="text-xs text-gray-500">
+                                          {new Date(notification.created_at).toLocaleDateString()} at {new Date(notification.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                        </p>
+                                        {!notification.is_read && (
+                                          <span className="h-1.5 w-1.5 rounded-full bg-blue-600" title="New notification" />
+                                        )}
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
+                                </Link>
                               </li>
                             ))}
                           </ul>
