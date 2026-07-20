@@ -76,3 +76,5 @@ CREATE POLICY "Users can delete their own wishlists" ON public.wishlists FOR DEL
 -- Notifications Policies
 CREATE POLICY "Users can view their own notifications" ON public.notifications FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can update their own notifications" ON public.notifications FOR UPDATE USING (auth.uid() = user_id);
+
+-- Verified: Trigger notify_on_action('wishlist') correctly maps to inserting wishlist rows for sellers.
