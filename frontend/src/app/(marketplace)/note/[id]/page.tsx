@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { Toaster, toast } from 'sonner';
 import {
   BookOpen, GraduationCap, Star, ShoppingCart, ArrowLeft,
-  Tag, User, Clock
+  Tag, User, Clock, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import ReviewSection from '@/components/ReviewSection';
@@ -234,11 +234,17 @@ export default function NoteDetailPage() {
 
           {/* Description */}
           {note.description && (
-            <div className="bg-gray-50 rounded-2xl border border-gray-100 p-6">
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <BookOpen className="h-4 w-4" /> About this Note
-              </h2>
-              <p className="text-gray-700 leading-relaxed whitespace-pre-line">{note.description}</p>
+            <div className="bg-gradient-to-br from-white to-blue-50/10 rounded-2xl border border-blue-100/70 p-6 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 right-0 h-24 w-24 bg-blue-500/5 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex justify-between items-start gap-4 mb-4">
+                <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-1.5">
+                  <BookOpen className="h-4 w-4 text-blue-500" /> Syllabus & Course Outline
+                </h2>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100/70 uppercase tracking-wider">
+                  <Sparkles className="h-3 w-3 fill-blue-100" /> AI Refined Summary
+                </span>
+              </div>
+              <p className="text-gray-700 leading-relaxed whitespace-pre-line text-sm md:text-base">{note.description}</p>
             </div>
           )}
 
