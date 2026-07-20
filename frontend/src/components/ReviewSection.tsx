@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
-import { Star, MessageSquare, ShieldCheck, Lock } from 'lucide-react';
+import { Star, MessageSquare, ShieldCheck, Lock, Sparkles } from 'lucide-react';
 
 interface Review {
   id: string;
@@ -284,44 +284,63 @@ export default function ReviewSection({ noteId, canReview = false }: ReviewSecti
         </div>
       ) : (
         <div className="space-y-4">
-          {reviews.map((review) => (
-            <div key={review.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-              <div className="flex justify-between items-start gap-2 mb-2">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
-                    {(review.profiles?.full_name || 'A')[0].toUpperCase()}
+          {reviews.map((review) => {
+            const isAI = !review.profiles;
+            const authorName = isAI ? 'Verified AI Educator' : (review.profiles?.full_name || 'Anonymous Buyer');
+            const authorInitial = isAI ? 'AI' : (review.profiles?.full_name || 'A')[0].toUpperCase();
+
+            return (
+              <div key={review.id} className={`border rounded-2xl p-5 shadow-sm transition-all ${isAI ? 'bg-gradient-to-r from-blue-50/20 to-indigo-50/20 border-blue-100/70' : 'bg-white border-gray-100'}`}>
+                <div className="flex justify-between items-start gap-2 mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${
+                      isAI ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gradient-to-br from-blue-400 to-indigo-500'
+                    }`}>
+                      {authorInitial}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                        {authorName}
+                        {isAI && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold bg-blue-100 text-blue-700 tracking-wider">
+                            <Sparkles className="h-2.5 w-2.5 fill-blue-200" /> AI
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {new Date(review.created_at).toLocaleDateString('en-ZA', {
+                          day: 'numeric', month: 'short', year: 'numeric'
+                        })}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">
-                      {review.profiles?.full_name || 'Anonymous Buyer'}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {new Date(review.created_at).toLocaleDateString('en-ZA', {
-                        day: 'numeric', month: 'short', year: 'numeric'
-                      })}
-                    </p>
+
+                  <div className="flex items-center gap-1">
+                    <StarRating value={review.rating} />
+                    <span className="text-xs text-gray-500 font-medium">({review.rating}/5)</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1">
-                  <StarRating value={review.rating} />
-                  <span className="text-xs text-gray-500 font-medium">({review.rating}/5)</span>
+                {review.comment && (
+                  <p className="text-sm text-gray-600 leading-relaxed mt-2 pl-10">
+                    "{review.comment}"
+                  </p>
+                )}
+
+                <div className="pl-10 mt-2">
+                  {isAI ? (
+                    <span className="inline-flex items-center gap-1 text-xs text-blue-600 font-semibold">
+                      <Sparkles className="h-3.5 w-3.5 fill-blue-100 text-blue-500" /> Verified AI Educator Review
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-xs text-green-600">
+                      <ShieldCheck className="h-3 w-3" /> Verified Buyer
+                    </span>
+                  )}
                 </div>
               </div>
-
-              {review.comment && (
-                <p className="text-sm text-gray-600 leading-relaxed mt-2 pl-10">
-                  "{review.comment}"
-                </p>
-              )}
-
-              <div className="pl-10 mt-2">
-                <span className="inline-flex items-center gap-1 text-xs text-green-600">
-                  <ShieldCheck className="h-3 w-3" /> Verified Buyer
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </section>
