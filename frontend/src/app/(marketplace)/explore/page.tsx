@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { Toaster, toast } from 'sonner';
 import { Search, GraduationCap, CreditCard, Heart, Bookmark, Filter } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface Note {
   id: string;
@@ -15,12 +16,81 @@ interface Note {
   likesCount: number;
 }
 
+interface Suggestion {
+  type: 'subject' | 'module' | 'school';
+  value: string;
+  text: string;
+}
+
 function ExploreContent() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  const fetchSuggestions = async (term: string) => {
+    if (!term.trim() || term.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+    
+    setSuggestionsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('notes')
+        .select('title, course_code, institution')
+        .eq('status', 'published')
+        .or(`title.ilike.%${term}%,course_code.ilike.%${term}%,institution.ilike.%${term}%`)
+        .limit(15);
+
+      if (error) throw error;
+
+      const items: Suggestion[] = [];
+      const added = new Set<string>();
+
+      (data || []).forEach(note => {
+        const t = term.toLowerCase();
+        
+        if (note.title.toLowerCase().includes(t)) {
+          const key = `subject:${note.title}`;
+          if (!added.has(key)) {
+            added.add(key);
+            items.push({ type: 'subject', value: note.title, text: note.title });
+          }
+        }
+        
+        if (note.course_code.toLowerCase().includes(t)) {
+          const key = `module:${note.course_code}`;
+          if (!added.has(key)) {
+            added.add(key);
+            items.push({ type: 'module', value: note.course_code, text: note.course_code });
+          }
+        }
+        
+        if (note.institution.toLowerCase().includes(t)) {
+          const key = `school:${note.institution}`;
+          if (!added.has(key)) {
+            added.add(key);
+            items.push({ type: 'school', value: note.institution, text: note.institution });
+          }
+        }
+      });
+
+      setSuggestions(items.slice(0, 6));
+    } catch (e) {
+      console.error('Error fetching suggestions:', e);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSuggestions(debouncedSearch);
+  }, [debouncedSearch]);
   
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
