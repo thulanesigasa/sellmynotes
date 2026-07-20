@@ -18,8 +18,6 @@ interface Note {
 function ExploreContent() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [search, setSearch] = useState('');
-  const [selectedInstitution, setSelectedInstitution] = useState('');
-  const [selectedCourseCode, setSelectedCourseCode] = useState('');
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
@@ -246,20 +244,13 @@ function ExploreContent() {
     }
   };
 
-  // Get unique filter lists dynamically
-  const uniqueInstitutions = Array.from(new Set(notes.map(n => n.institution).filter(Boolean)));
-  const uniqueCourseCodes = Array.from(new Set(notes.map(n => n.course_code).filter(Boolean)));
-
   const filteredNotes = notes.filter(n => {
     const matchesSearch = 
       n.title.toLowerCase().includes(search.toLowerCase()) ||
       n.course_code.toLowerCase().includes(search.toLowerCase()) ||
       n.institution.toLowerCase().includes(search.toLowerCase());
       
-    const matchesInstitution = !selectedInstitution || n.institution === selectedInstitution;
-    const matchesCourseCode = !selectedCourseCode || n.course_code === selectedCourseCode;
-    
-    return matchesSearch && matchesInstitution && matchesCourseCode;
+    return matchesSearch;
   });
 
   return (
@@ -273,44 +264,18 @@ function ExploreContent() {
         </div>
         
         {/* Advanced Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-          <div className="relative md:col-span-2">
+        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+          <div className="relative w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input
               type="text"
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm transition-all"
-              placeholder="Search title, course code..."
+              placeholder="Search by subject, module (e.g. INF1002S), or university..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
-          </div>
-
-          <div>
-            <select
-              value={selectedInstitution}
-              onChange={(e) => setSelectedInstitution(e.target.value)}
-              className="block w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm transition-all text-gray-700"
-            >
-              <option value="">All Institutions</option>
-              {uniqueInstitutions.map((inst) => (
-                <option key={inst} value={inst}>{inst}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <select
-              value={selectedCourseCode}
-              onChange={(e) => setSelectedCourseCode(e.target.value)}
-              className="block w-full px-3 py-2.5 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm transition-all text-gray-700"
-            >
-              <option value="">All Course Codes</option>
-              {uniqueCourseCodes.map((code) => (
-                <option key={code} value={code}>{code}</option>
-              ))}
-            </select>
           </div>
         </div>
       </div>
