@@ -23,6 +23,8 @@ interface Suggestion {
   text: string;
 }
 
+const autocompleteCache: Record<string, Suggestion[]> = {};
+
 function ExploreContent() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [search, setSearch] = useState('');
@@ -65,8 +67,14 @@ function ExploreContent() {
   };
 
   const fetchSuggestions = async (term: string) => {
-    if (!term.trim() || term.length < 2) {
+    const cleanTerm = term.toLowerCase().trim();
+    if (!cleanTerm || cleanTerm.length < 2) {
       setSuggestions([]);
+      return;
+    }
+
+    if (autocompleteCache[cleanTerm]) {
+      setSuggestions(autocompleteCache[cleanTerm]);
       return;
     }
     
@@ -112,7 +120,9 @@ function ExploreContent() {
         }
       });
 
-      setSuggestions(items.slice(0, 6));
+      const slicedItems = items.slice(0, 6);
+      autocompleteCache[cleanTerm] = slicedItems;
+      setSuggestions(slicedItems);
     } catch (e) {
       console.error('Error fetching suggestions:', e);
     } finally {
