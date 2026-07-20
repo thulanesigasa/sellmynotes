@@ -194,9 +194,14 @@ export default function Navbar() {
                                       <span className="font-medium text-blue-600">"{notification.notes.title}"</span>
                                       {notification.type === 'wishlist' && ' to their wishlist'}
                                     </p>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                      {new Date(notification.created_at).toLocaleDateString()} at {new Date(notification.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                                    </p>
+                                    <div className="flex items-center justify-between mt-1">
+                                      <p className="text-xs text-gray-500">
+                                        {new Date(notification.created_at).toLocaleDateString()} at {new Date(notification.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                      </p>
+                                      {!notification.is_read && (
+                                        <span className="h-1.5 w-1.5 rounded-full bg-blue-600" title="New notification" />
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               </li>
