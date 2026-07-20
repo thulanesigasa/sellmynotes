@@ -44,12 +44,13 @@ function ExploreContent() {
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   useClickOutside(containerRef, () => {
-    setSuggestions([]);
+    setShowDropdown(false);
     setFocusedIndex(-1);
   });
 
@@ -58,21 +59,30 @@ function ExploreContent() {
   }, [suggestions]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (suggestions.length === 0) return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (focusedIndex !== -1 && suggestions[focusedIndex]) {
+        setSearch(suggestions[focusedIndex].value);
+      }
+      setShowDropdown(false);
+      setFocusedIndex(-1);
+      return;
+    }
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setFocusedIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : 0));
+      setShowDropdown(true);
+      if (suggestions.length > 0) {
+        setFocusedIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : 0));
+      }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setFocusedIndex(prev => (prev > 0 ? prev - 1 : suggestions.length - 1));
-    } else if (e.key === 'Enter' && focusedIndex !== -1) {
-      e.preventDefault();
-      setSearch(suggestions[focusedIndex].value);
-      setSuggestions([]);
-      setFocusedIndex(-1);
+      setShowDropdown(true);
+      if (suggestions.length > 0) {
+        setFocusedIndex(prev => (prev > 0 ? prev - 1 : suggestions.length - 1));
+      }
     } else if (e.key === 'Escape') {
-      setSuggestions([]);
+      setShowDropdown(false);
       setFocusedIndex(-1);
     }
   };
@@ -99,6 +109,9 @@ function ExploreContent() {
     }));
     
     setSuggestionsLoading(true);
+    let items: Suggestion[] = [...matchedStatic];
+    const added = new Set<string>(matchedStatic.map(s => `subject:${s.value}`));
+
     try {
       const { data, error } = await supabase
         .from('notes')
@@ -108,9 +121,6 @@ function ExploreContent() {
         .limit(15);
 
       if (error) throw error;
-
-      const items: Suggestion[] = [...matchedStatic];
-      const added = new Set<string>(matchedStatic.map(s => `subject:${s.value}`));
 
       (data || []).forEach(note => {
         const t = term.toLowerCase();
@@ -139,13 +149,12 @@ function ExploreContent() {
           }
         }
       });
-
+    } catch (e) {
+      console.error('Error fetching suggestions from DB:', e);
+    } finally {
       const slicedItems = items.slice(0, 6);
       autocompleteCache[cleanTerm] = slicedItems;
       setSuggestions(slicedItems);
-    } catch (e) {
-      console.error('Error fetching suggestions:', e);
-    } finally {
       setSuggestionsLoading(false);
     }
   };
@@ -406,12 +415,16 @@ function ExploreContent() {
               className="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm shadow-sm transition-all"
               placeholder="Search by subject, module (e.g. INF1002S), or university..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setShowDropdown(true);
+              }}
+              onFocus={() => setShowDropdown(true)}
               onKeyDown={handleKeyDown}
             />
 
             {/* Suggestions Overlay */}
-            {search.trim().length >= 2 && (suggestions.length > 0 || suggestionsLoading) && (
+            {showDropdown && search.trim().length >= 2 && (suggestions.length > 0 || suggestionsLoading) && (
               <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-150 overflow-hidden divide-y divide-gray-100">
                 {suggestionsLoading ? (
                   <div className="p-4 flex items-center justify-center text-sm text-gray-500 space-x-2">
@@ -425,7 +438,7 @@ function ExploreContent() {
                       type="button"
                       onClick={() => {
                         setSearch(suggestion.value);
-                        setSuggestions([]);
+                        setShowDropdown(false);
                         setFocusedIndex(-1);
                       }}
                       className={`w-full text-left px-4 py-3 flex items-center justify-between text-sm transition-colors group ${
@@ -461,7 +474,7 @@ function ExploreContent() {
             )}
 
             {/* Suggestions Empty State */}
-            {search.trim().length >= 2 && !suggestionsLoading && suggestions.length === 0 && (
+            {showDropdown && search.trim().length >= 2 && !suggestionsLoading && suggestions.length === 0 && (
               <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-150 p-4 text-center text-sm text-gray-500">
                 No matching suggestions found for "{search}"
               </div>
