@@ -346,6 +346,58 @@ function ExploreContent() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+
+            {/* Suggestions Overlay */}
+            {search.trim().length >= 2 && (suggestions.length > 0 || suggestionsLoading) && (
+              <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-150 overflow-hidden divide-y divide-gray-100">
+                {suggestionsLoading ? (
+                  <div className="p-4 flex items-center justify-center text-sm text-gray-500 space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span>Loading suggestions...</span>
+                  </div>
+                ) : (
+                  suggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => {
+                        setSearch(suggestion.value);
+                        setSuggestions([]);
+                      }}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between text-sm transition-colors group"
+                    >
+                      <div className="flex items-center space-x-3">
+                        {suggestion.type === 'subject' && <Search className="h-4 w-4 text-gray-400 group-hover:text-blue-500" />}
+                        {suggestion.type === 'module' && <Bookmark className="h-4 w-4 text-gray-400 group-hover:text-blue-500" />}
+                        {suggestion.type === 'school' && <GraduationCap className="h-4 w-4 text-gray-400 group-hover:text-blue-500" />}
+                        <span className="text-gray-700">
+                          {(() => {
+                            const match = search.trim();
+                            const text = suggestion.text;
+                            if (!match) return text;
+                            const regex = new RegExp(`(${match.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')})`, 'gi');
+                            const parts = text.split(regex);
+                            return parts.map((part, i) => 
+                              regex.test(part) ? <strong key={i} className="font-semibold text-blue-600">{part}</strong> : <span key={i}>{part}</span>
+                            );
+                          })()}
+                        </span>
+                      </div>
+                      <span className="text-xs font-semibold text-gray-400 px-2 py-0.5 bg-gray-50 rounded-md capitalize">
+                        {suggestion.type}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* Suggestions Empty State */}
+            {search.trim().length >= 2 && !suggestionsLoading && suggestions.length === 0 && (
+              <div className="absolute z-50 left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-150 p-4 text-center text-sm text-gray-500">
+                No matching suggestions found for "{search}"
+              </div>
+            )}
           </div>
         </div>
       </div>
