@@ -6,8 +6,8 @@ export async function middleware(request: NextRequest) {
     request,
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  const supabaseUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/['"]/g, '').trim();
+  const supabaseAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').replace(/['"]/g, '').trim();
 
   const supabase = createServerClient(
     supabaseUrl,
@@ -69,7 +69,7 @@ export async function middleware(request: NextRequest) {
 
   // Unauthenticated user checks
   if (!user) {
-    const protectedRoutes = ['/seller', '/library', '/upload', '/wishlist', '/profile'];
+    const protectedRoutes = ['/seller', '/library', '/upload', '/wishlist', '/profile', '/explore'];
     if (protectedRoutes.some(route => path.startsWith(route)) || path.startsWith('/admin')) {
       const url = request.nextUrl.clone();
       url.pathname = '/login';

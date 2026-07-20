@@ -101,7 +101,7 @@ function ExploreContent() {
       }
     } catch (error: any) {
       toast.error('Failed to load notes');
-      console.error('Fetch Notes Error:', error);
+      console.error('Fetch Notes Error:', error.message, error.details, error.hint, error.code, error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
