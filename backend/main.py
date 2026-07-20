@@ -207,7 +207,7 @@ async def handle_published_email_background(record: dict):
     if not supabase or not seller_id:
         return
         
-    # Fetch seller email
+    # 1. Fetch seller email & notify
     try:
         user_res = supabase.auth.admin.get_user_by_id(seller_id)
         seller_email = user_res.user.email
@@ -216,6 +216,24 @@ async def handle_published_email_background(record: dict):
             await send_note_published_email(seller_email, title, note_url)
     except Exception as e:
         logger.error(f"Failed to fetch seller email or send publish notification for {note_id}: {e}")
+
+    # 2. Auto-insert AI review if comments/ratings exist
+    ai_comment = record.get("ai_review_comment")
+    ai_rating = record.get("ai_review_rating")
+    if ai_comment and ai_rating:
+        try:
+            # Prevent duplicate review insertions
+            existing = supabase.table("reviews").select("id").eq("note_id", note_id).is_("buyer_id", "null").execute()
+            if not existing.data:
+                supabase.table("reviews").insert({
+                    "note_id": note_id,
+                    "buyer_id": None, # NULL indicates platform AI reviewer
+                    "rating": ai_rating,
+                    "comment": ai_comment
+                }).execute()
+                logger.info(f"Successfully inserted automated AI review for note {note_id}")
+        except Exception as rev_err:
+            logger.error(f"Failed to auto-insert AI review for {note_id}: {rev_err}", exc_info=True)
 
 @app.post("/webhooks/note-published")
 async def handle_note_published(
