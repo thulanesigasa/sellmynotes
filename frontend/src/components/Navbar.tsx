@@ -59,10 +59,32 @@ export default function Navbar() {
   };
 
   useEffect(() => {
+    let channel: any;
+
+    const setupRealtime = (userId: string) => {
+      if (channel) supabase.removeChannel(channel);
+      channel = supabase
+        .channel('public:notifications')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `user_id=eq.${userId}`,
+          },
+          () => {
+            fetchNotifications(userId);
+          }
+        )
+        .subscribe();
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
         fetchNotifications(session.user.id);
+        setupRealtime(session.user.id);
       }
     });
 
@@ -72,8 +94,10 @@ export default function Navbar() {
       setSession(session);
       if (session) {
         fetchNotifications(session.user.id);
+        setupRealtime(session.user.id);
       } else {
         setNotifications([]);
+        if (channel) supabase.removeChannel(channel);
       }
     });
 
@@ -87,6 +111,7 @@ export default function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       subscription.unsubscribe();
+      if (channel) supabase.removeChannel(channel);
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
