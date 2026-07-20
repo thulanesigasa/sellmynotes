@@ -161,8 +161,8 @@ export default function Navbar() {
 
                   {/* Dropdown Menu */}
                   {showNotifications && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 overflow-hidden">
-                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50">
+                    <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-xl shadow-xl backdrop-blur-md bg-white/95 border border-gray-100 focus:outline-none z-50 overflow-hidden">
+                      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
                         <p className="text-sm font-semibold text-gray-900">Notifications</p>
                       </div>
                       <div className="max-h-96 overflow-y-auto">
