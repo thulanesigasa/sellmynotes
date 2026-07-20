@@ -200,7 +200,7 @@ export default function Navbar() {
                             {notifications.map((notification) => (
                               <li key={notification.id} className={`hover:bg-gray-50 transition-colors ${!notification.is_read ? 'bg-blue-50/50' : ''}`}>
                                 <Link 
-                                  href={`/note/${notification.note_id}`}
+                                  href={notification.type === 'payment' ? '/seller' : `/note/${notification.note_id}`}
                                   onClick={() => setShowNotifications(false)}
                                   className="block p-4"
                                 >
