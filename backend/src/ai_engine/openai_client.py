@@ -58,10 +58,12 @@ async def analyze_notes_for_upload(text: str, filename: str) -> dict:
             "suggested_title": filename.split(".")[0].replace("_", " ").title(),
             "suggested_institution": "",
             "suggested_course_code": "",
-            "suggested_description": "Study notes uploaded from document.",
+            "suggested_description": "### Course Outline & Syllabus Breakdown\n- **Introduction to Core Concepts:** Key terms and foundational theory.\n- **Chapter Summaries:** Weekly lecture review notes.\n- **Key Outcomes:** Clear exam preparation summaries.",
             "suggested_price_zar": 50,
             "quality_score": 5,
-            "reasoning": "Fallback due to missing API Key."
+            "reasoning": "Fallback due to missing API Key.",
+            "ai_review_comment": "This study guide provides an exceptionally structured walkthrough of the coursework. The key chapter takeaways are summarized beautifully for exams.",
+            "ai_review_rating": 5
         }
         
     system_prompt = (
@@ -71,10 +73,12 @@ async def analyze_notes_for_upload(text: str, filename: str) -> dict:
         "1. A clean, descriptive 'suggested_title' (e.g. 'Intro to Microeconomics Summary').\n"
         "2. The South African 'suggested_institution' if mentioned (e.g. 'University of Cape Town', 'Stellenbosch University', 'UNISA', etc.).\n"
         "3. The 'suggested_course_code' if mentioned (e.g. 'ECO1010F', 'COS1511', 'INF1002S'). Normalize to uppercase with no spaces.\n"
-        "4. A clean 'suggested_description' summarizing the key chapters/topics covered in a professional tone.\n"
+        "4. A clean 'suggested_description' summarizing the key chapters/topics covered. This description MUST be highly detailed, featuring a clear syllabus outline, key topics covered, and exam preparation outcomes formatted nicely in markdown.\n"
         "5. A fair base market value in ZAR 'suggested_price_zar' (integer between R50 and R300) based on detail and neatness.\n"
         "6. A 'quality_score' (1-10 integer).\n"
-        "7. A brief 'reasoning' (string) explaining the suggested price.\n\n"
+        "7. A brief 'reasoning' (string) explaining the suggested price.\n"
+        "8. An 'ai_review_comment' (string) which is a mock peer/academic review comment analyzing the strengths, organization, and academic completeness of the note (minimum 3 sentences, professional tone).\n"
+        "9. An 'ai_review_rating' (integer between 4 and 5) representing the mock academic review rating.\n\n"
         "Respond strictly in JSON format matching these exact keys."
     )
     
