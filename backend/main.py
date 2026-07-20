@@ -103,6 +103,7 @@ async def analyze_uploaded_note(
         
         return {
             "status": "success",
+            "ocr_text": text[:50000],
             "extracted_metadata": {
                 "title": valuation.get("suggested_title", file.filename.split(".")[0].replace("_", " ").title()),
                 "institution": valuation.get("suggested_institution", ""),

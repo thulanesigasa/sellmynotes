@@ -73,6 +73,8 @@ export default function UploadPage() {
           course_code: result.extracted_metadata.course_code,
           description: result.extracted_metadata.description,
           price_zar: result.valuation.final_price_zar,
+          ocr_text: result.ocr_text,
+          suggested_price: result.valuation.base_price_zar,
         });
         toast.dismiss(toastId);
         toast.success('AI Scanner completed! Metadata & valuation suggestions successfully extracted.');
@@ -148,7 +150,7 @@ export default function UploadPage() {
       
       // Reset form state
       setFile(null);
-      setMetadata({ title: '', institution: '', course_code: '', description: '', price_zar: 0 });
+      setMetadata({ title: '', institution: '', course_code: '', description: '', price_zar: 0, ocr_text: '', suggested_price: 0 });
       setAnalysisResult(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       
