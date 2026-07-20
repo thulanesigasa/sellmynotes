@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { useRouter, usePathname } from 'next/navigation';
-import { LogOut, User, Bell, Heart, Bookmark, FileText, BookOpen } from 'lucide-react';
+import { LogOut, User, Bell, Heart, Bookmark, FileText, BookOpen, CreditCard } from 'lucide-react';
 
 interface Notification {
   id: string;
@@ -175,16 +175,22 @@ export default function Navbar() {
                               <li key={notification.id} className={`p-4 hover:bg-gray-50 transition-colors ${!notification.is_read ? 'bg-blue-50/50' : ''}`}>
                                 <div className="flex space-x-3">
                                   <div className="flex-shrink-0 mt-0.5">
-                                    {notification.type === 'like' ? (
+                                    {notification.type === 'like' && (
                                       <Heart className="h-5 w-5 text-red-500 fill-red-500" />
-                                    ) : (
+                                    )}
+                                    {notification.type === 'wishlist' && (
                                       <Bookmark className="h-5 w-5 text-blue-500 fill-blue-500" />
+                                    )}
+                                    {notification.type === 'payment' && (
+                                      <CreditCard className="h-5 w-5 text-green-500 fill-green-100" />
                                     )}
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm text-gray-900">
                                       <span className="font-semibold">{notification.profiles.first_name} {notification.profiles.surname}</span> 
-                                      {notification.type === 'like' ? ' liked your note ' : ' added your note '}
+                                      {notification.type === 'like' && ' liked your note '}
+                                      {notification.type === 'wishlist' && ' added your note '}
+                                      {notification.type === 'payment' && ' purchased your note '}
                                       <span className="font-medium text-blue-600">"{notification.notes.title}"</span>
                                       {notification.type === 'wishlist' && ' to their wishlist'}
                                     </p>
