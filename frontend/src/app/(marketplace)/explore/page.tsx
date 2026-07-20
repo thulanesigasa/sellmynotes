@@ -25,6 +25,17 @@ interface Suggestion {
 
 const autocompleteCache: Record<string, Suggestion[]> = {};
 
+const SOUTH_AFRICAN_SUBJECTS = [
+  // Official Languages
+  "Afrikaans", "English", "isiNdebele", "sePedi", "seSotho", "Sign Language", "siSwati", "xiTsonga", "seTswana", "Tshivenda", "isiXhosa", "isiZulu",
+  // Additional subjects
+  "Urdu", "Arabic", "German", "Greek", "Gujarati", "Hebrew", "Hindi", "Portuguese", "Sanskrit", "Tamil", "Telugu",
+  // Core subjects
+  "Mathematics", "Mathematical Literacy", "Life Orientation",
+  // Elective subjects
+  "Physical Sciences", "Computer Applications Technology (CAT)", "History", "Geography", "Tourism", "Business Studies", "Accounting", "Music", "Information Technology (IT)", "Economics", "Life Sciences", "Engineering Graphics and Design (EGD)", "Visual Arts", "Drama"
+];
+
 function ExploreContent() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [search, setSearch] = useState('');
@@ -77,6 +88,15 @@ function ExploreContent() {
       setSuggestions(autocompleteCache[cleanTerm]);
       return;
     }
+
+    // Match static South African subjects locally
+    const matchedStatic = SOUTH_AFRICAN_SUBJECTS.filter(subj =>
+      subj.toLowerCase().includes(cleanTerm)
+    ).map(subj => ({
+      type: 'subject' as const,
+      value: subj,
+      text: subj
+    }));
     
     setSuggestionsLoading(true);
     try {
@@ -89,8 +109,8 @@ function ExploreContent() {
 
       if (error) throw error;
 
-      const items: Suggestion[] = [];
-      const added = new Set<string>();
+      const items: Suggestion[] = [...matchedStatic];
+      const added = new Set<string>(matchedStatic.map(s => `subject:${s.value}`));
 
       (data || []).forEach(note => {
         const t = term.toLowerCase();
