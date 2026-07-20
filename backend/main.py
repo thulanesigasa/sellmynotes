@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Header, Depends
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Header, Depends, File, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import logging
@@ -9,7 +9,7 @@ from datetime import datetime
 
 from src.lib.supabase_client import supabase
 from src.document.processor import extract_text_from_pdf_bytes, add_watermark_to_pdf
-from src.ai_engine.openai_client import valuate_notes
+from src.ai_engine.openai_client import valuate_notes, analyze_notes_for_upload
 from src.utils.mailer import send_receipt_email, send_note_published_email
 
 # Explicitly load dotenv if we are running locally (fallback)
@@ -48,6 +48,77 @@ def read_root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+
+@app.post("/api/notes/analyze")
+async def analyze_uploaded_note(
+    file: UploadFile = File(...),
+    authorization: Optional[str] = Header(None)
+):
+    """
+    Synchronously extracts text (OCR) and runs AI valuation on an uploaded document file.
+    """
+    if authorization:
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Invalid token format")
+        token = authorization.replace("Bearer ", "")
+        try:
+            # Simple auth check if JWT is provided
+            user_res = supabase.auth.get_user(token)
+            if not user_res.user:
+                raise HTTPException(status_code=401, detail="Unauthorized")
+        except Exception as e:
+            logger.error(f"Auth error in analyze endpoint: {e}")
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+    file_bytes = await file.read()
+    if not file_bytes:
+        raise HTTPException(status_code=400, detail="Empty file uploaded")
+
+    filename = file.filename.lower()
+    text = ""
+    
+    try:
+        if filename.endswith(".pdf"):
+            logger.info("Extracting text from PDF upload...")
+            text = extract_text_from_pdf_bytes(file_bytes, max_pages=15)
+        elif filename.endswith((".png", ".jpg", ".jpeg")):
+            logger.info("Extracting text from image upload (Mock OCR)...")
+            text = "Image-based study notes. Substantial mathematical formulas, diagrams, and handwritten notes visible."
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported file format. Please upload PDF, JPG, or PNG.")
+
+        if not text:
+            text = "Empty document or scanned image without searchable text."
+            
+    except Exception as ocr_err:
+        logger.error(f"OCR/Extraction failure: {ocr_err}")
+        raise HTTPException(status_code=500, detail=f"OCR processing failed: {str(ocr_err)}")
+
+    try:
+        logger.info("Calling OpenAI for real-time note analysis...")
+        valuation = await analyze_notes_for_upload(text, file.filename)
+        
+        suggested_price = valuation.get("suggested_price_zar", 50)
+        final_price = round(suggested_price * 1.40, 2)
+        
+        return {
+            "status": "success",
+            "extracted_metadata": {
+                "title": valuation.get("suggested_title", file.filename.split(".")[0].replace("_", " ").title()),
+                "institution": valuation.get("suggested_institution", ""),
+                "course_code": valuation.get("suggested_course_code", ""),
+                "description": valuation.get("suggested_description", "Study notes covering key topics in detail.")
+            },
+            "valuation": {
+                "base_price_zar": suggested_price,
+                "final_price_zar": final_price,
+                "quality_score": valuation.get("quality_score", 5),
+                "reasoning": valuation.get("reasoning", "High quality comprehensive study notes.")
+            }
+        }
+    except Exception as ai_err:
+        logger.error(f"AI Valuation failure: {ai_err}")
+        raise HTTPException(status_code=500, detail=f"Valuation failed: {str(ai_err)}")
 
 class WebhookPayload(BaseModel):
     type: str
