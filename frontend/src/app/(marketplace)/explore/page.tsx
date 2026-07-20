@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Toaster, toast } from 'sonner';
 import { Search, GraduationCap, CreditCard, Heart, Bookmark, Filter } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useClickOutside } from '@/hooks/useClickOutside';
 
 interface Note {
   id: string;
@@ -28,9 +29,40 @@ function ExploreContent() {
   const debouncedSearch = useDebounce(search, 300);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+
+  useClickOutside(containerRef, () => {
+    setSuggestions([]);
+    setFocusedIndex(-1);
+  });
+
+  useEffect(() => {
+    setFocusedIndex(-1);
+  }, [suggestions]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (suggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setFocusedIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : 0));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setFocusedIndex(prev => (prev > 0 ? prev - 1 : suggestions.length - 1));
+    } else if (e.key === 'Enter' && focusedIndex !== -1) {
+      e.preventDefault();
+      setSearch(suggestions[focusedIndex].value);
+      setSuggestions([]);
+      setFocusedIndex(-1);
+    } else if (e.key === 'Escape') {
+      setSuggestions([]);
+      setFocusedIndex(-1);
+    }
+  };
 
   const fetchSuggestions = async (term: string) => {
     if (!term.trim() || term.length < 2) {
@@ -335,7 +367,7 @@ function ExploreContent() {
         
         {/* Advanced Filters */}
         <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-          <div className="relative w-full">
+          <div ref={containerRef} className="relative w-full">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
             </div>
@@ -345,6 +377,7 @@ function ExploreContent() {
               placeholder="Search by subject, module (e.g. INF1002S), or university..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
 
             {/* Suggestions Overlay */}
@@ -363,14 +396,17 @@ function ExploreContent() {
                       onClick={() => {
                         setSearch(suggestion.value);
                         setSuggestions([]);
+                        setFocusedIndex(-1);
                       }}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between text-sm transition-colors group"
+                      className={`w-full text-left px-4 py-3 flex items-center justify-between text-sm transition-colors group ${
+                        index === focusedIndex ? 'bg-blue-50/70 text-blue-900' : 'hover:bg-gray-50 text-gray-700'
+                      }`}
                     >
                       <div className="flex items-center space-x-3">
-                        {suggestion.type === 'subject' && <Search className="h-4 w-4 text-gray-400 group-hover:text-blue-500" />}
-                        {suggestion.type === 'module' && <Bookmark className="h-4 w-4 text-gray-400 group-hover:text-blue-500" />}
-                        {suggestion.type === 'school' && <GraduationCap className="h-4 w-4 text-gray-400 group-hover:text-blue-500" />}
-                        <span className="text-gray-700">
+                        {suggestion.type === 'subject' && <Search className={`h-4 w-4 text-gray-400 group-hover:text-blue-500 ${index === focusedIndex ? 'text-blue-500' : ''}`} />}
+                        {suggestion.type === 'module' && <Bookmark className={`h-4 w-4 text-gray-400 group-hover:text-blue-500 ${index === focusedIndex ? 'text-blue-500' : ''}`} />}
+                        {suggestion.type === 'school' && <GraduationCap className={`h-4 w-4 text-gray-400 group-hover:text-blue-500 ${index === focusedIndex ? 'text-blue-500' : ''}`} />}
+                        <span className={`${index === focusedIndex ? 'font-medium' : ''}`}>
                           {(() => {
                             const match = search.trim();
                             const text = suggestion.text;
@@ -383,7 +419,9 @@ function ExploreContent() {
                           })()}
                         </span>
                       </div>
-                      <span className="text-xs font-semibold text-gray-400 px-2 py-0.5 bg-gray-50 rounded-md capitalize">
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-md capitalize ${
+                        index === focusedIndex ? 'bg-blue-100 text-blue-800' : 'bg-gray-50 text-gray-400'
+                      }`}>
                         {suggestion.type}
                       </span>
                     </button>
