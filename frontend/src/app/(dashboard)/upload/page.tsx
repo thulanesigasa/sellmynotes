@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
-import { UploadCloud, File as FileIcon, X, CheckCircle2 } from 'lucide-react';
+import { UploadCloud, File as FileIcon, X, CheckCircle2, Sparkles } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 import { uploadRawNote, NoteMetadata } from '@/lib/storage';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 const MAX_FILE_SIZE_MB = 15;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
@@ -22,6 +23,8 @@ export default function UploadPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (selectedFile: File): boolean => {
@@ -36,11 +39,57 @@ export default function UploadPage() {
     return true;
   };
 
+  const analyzeFile = async (selectedFile: File) => {
+    setIsAnalyzing(true);
+    setAnalysisResult(null);
+    const toastId = toast.loading('AI is scanning and valuating your notes...');
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await fetch('http://localhost:8000/api/notes/analyze', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session?.access_token || ''}`
+        },
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error('AI analysis failed');
+      }
+      
+      const result = await response.json();
+      
+      if (result.status === 'success') {
+        setAnalysisResult(result);
+        setMetadata({
+          title: result.extracted_metadata.title,
+          institution: result.extracted_metadata.institution,
+          course_code: result.extracted_metadata.course_code,
+          description: result.extracted_metadata.description,
+        });
+        toast.dismiss(toastId);
+        toast.success('AI Scanner completed! Metadata & valuation suggestions successfully extracted.');
+      }
+    } catch (err: any) {
+      console.error('Error analyzing note:', err);
+      toast.dismiss(toastId);
+      toast.error('AI was unable to extract note metadata. Please enter details manually.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
   const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
       if (validateFile(selectedFile)) {
         setFile(selectedFile);
+        analyzeFile(selectedFile);
       }
     }
   };
@@ -61,6 +110,7 @@ export default function UploadPage() {
       const selectedFile = e.dataTransfer.files[0];
       if (validateFile(selectedFile)) {
         setFile(selectedFile);
+        analyzeFile(selectedFile);
       }
     }
   };
