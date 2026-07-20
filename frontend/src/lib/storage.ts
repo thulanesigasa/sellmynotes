@@ -5,6 +5,7 @@ export interface NoteMetadata {
   institution: string;
   course_code: string;
   description: string;
+  price_zar: number;
 }
 
 export async function uploadRawNote(
@@ -86,8 +87,8 @@ export async function uploadRawNote(
           course_code: metadata.course_code,
           description: metadata.description,
           file_path: fileName,
-          status: 'processing',
-          price_zar: 0 // Placeholder until the valuation engine processes it
+          status: 'draft',
+          price_zar: metadata.price_zar
         }
       ])
       .select()

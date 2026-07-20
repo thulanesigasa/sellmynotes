@@ -19,6 +19,7 @@ export default function UploadPage() {
     institution: '',
     course_code: '',
     description: '',
+    price_zar: 0,
   });
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -71,6 +72,7 @@ export default function UploadPage() {
           institution: result.extracted_metadata.institution,
           course_code: result.extracted_metadata.course_code,
           description: result.extracted_metadata.description,
+          price_zar: result.valuation.final_price_zar,
         });
         toast.dismiss(toastId);
         toast.success('AI Scanner completed! Metadata & valuation suggestions successfully extracted.');
@@ -127,8 +129,8 @@ export default function UploadPage() {
       toast.error('Please select a file to upload.');
       return;
     }
-    if (!metadata.title || !metadata.institution || !metadata.course_code || !metadata.description) {
-      toast.error('Please fill in all fields.');
+    if (!metadata.title || !metadata.institution || !metadata.course_code || !metadata.description || metadata.price_zar <= 0) {
+      toast.error('Please fill in all fields including a valid selling price.');
       return;
     }
 
@@ -142,11 +144,12 @@ export default function UploadPage() {
       });
       
       toast.dismiss();
-      toast.success('Upload complete! Smart Valuation processing has started.');
+      toast.success('Upload complete! Your notes are now saved as a draft.');
       
       // Reset form state
       setFile(null);
-      setMetadata({ title: '', institution: '', course_code: '', description: '' });
+      setMetadata({ title: '', institution: '', course_code: '', description: '', price_zar: 0 });
+      setAnalysisResult(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       
       // Redirect user
@@ -323,6 +326,31 @@ export default function UploadPage() {
                 required
               />
             </div>
+            <div className="space-y-2 md:col-span-2">
+              <label htmlFor="price_zar" className="block text-sm font-medium text-gray-700">
+                Selling Price (ZAR) {analysisResult && <span className="text-xs text-blue-600 font-medium">(AI Suggested: R{analysisResult.valuation.final_price_zar})</span>}
+              </label>
+              <div className="relative rounded-lg shadow-sm max-w-xs">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-gray-500 sm:text-sm">R</span>
+                </div>
+                <input
+                  type="number"
+                  name="price_zar"
+                  id="price_zar"
+                  value={metadata.price_zar || ''}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value) || 0;
+                    setMetadata(prev => ({ ...prev, price_zar: val }));
+                  }}
+                  className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
+                  placeholder="e.g. 150"
+                  min={10}
+                  max={500}
+                  required
+                />
+              </div>
+            </div>
           </div>
 
           <button
@@ -343,7 +371,7 @@ export default function UploadPage() {
             ) : (
               <span className="flex items-center">
                 <CheckCircle2 className="h-5 w-5 mr-2" />
-                Submit for Smart Valuation
+                Publish Notes & Set Price
               </span>
             )}
           </button>
