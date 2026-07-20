@@ -212,6 +212,46 @@ export default function UploadPage() {
             )}
           </div>
 
+          {/* AI Scanning Loader */}
+          {isAnalyzing && (
+            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-8 flex flex-col items-center justify-center space-y-4 animate-pulse">
+              <Sparkles className="h-10 w-10 text-blue-600 animate-spin" />
+              <div className="text-sm font-semibold text-blue-900">AI Note Valuation Engine Analysing...</div>
+              <div className="text-xs text-blue-700 max-w-sm text-center">Reading PDF pages, running OCR, extracting course modules, and calculating suggested marketplace value. This takes about 5 seconds.</div>
+            </div>
+          )}
+
+          {/* AI Smart Review */}
+          {analysisResult && !isAnalyzing && (
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50/50 border border-blue-150 rounded-xl p-6 space-y-4 shadow-sm">
+              <div className="flex items-center justify-between border-b border-blue-100 pb-3">
+                <div className="flex items-center space-x-2">
+                  <Sparkles className="h-5 w-5 text-blue-600" />
+                  <span className="font-bold text-gray-900 text-base">AI Smart Valuation Review</span>
+                </div>
+                <div className="flex items-center space-x-1.5 bg-blue-600 text-white px-2.5 py-1 rounded-full text-xs font-bold shadow-sm">
+                  <span>Score:</span>
+                  <span>{analysisResult.valuation.quality_score}/10</span>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                <div>
+                  <span className="block font-semibold text-xs text-gray-500 uppercase tracking-wider">Suggested ZAR Price</span>
+                  <span className="text-2xl font-extrabold text-gray-900 mt-1 block">R{analysisResult.valuation.final_price_zar}</span>
+                  <span className="text-xs text-gray-400 block mt-0.5">(Includes 40% platform markup on base R{analysisResult.valuation.base_price_zar})</span>
+                </div>
+                <div>
+                  <span className="block font-semibold text-xs text-gray-500 uppercase tracking-wider">AI Valuation Reasoning</span>
+                  <p className="text-xs text-gray-600 mt-1.5 leading-relaxed">{analysisResult.valuation.reasoning}</p>
+                </div>
+              </div>
+              <div className="bg-white/80 border border-blue-50 rounded-lg p-3 text-xs text-blue-800 flex items-start space-x-2">
+                <CheckCircle2 className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <p><strong>Autofill Active:</strong> AI successfully extracted module codes and names. You can inspect the pre-filled fields below and tweak them before publishing.</p>
+              </div>
+            </div>
+          )}
+
           {/* Real-time Upload Progress Bar */}
           {isUploading && (
             <div className="space-y-2">
