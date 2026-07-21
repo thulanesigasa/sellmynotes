@@ -336,7 +336,7 @@ export default function UploadPage() {
                 type="text"
                 id="course_code"
                 name="course_code"
-                value={metadata.course_code}
+                value={metadata.course_code || ''}
                 onChange={handleChange}
                 placeholder="e.g. CSC1015F"
                 maxLength={10}
