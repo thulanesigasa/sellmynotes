@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Header, Depends, File, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -11,10 +14,6 @@ from src.lib.supabase_client import supabase
 from src.document.processor import extract_text_from_pdf_bytes, add_watermark_to_pdf
 from src.ai_engine.openai_client import valuate_notes, analyze_notes_for_upload
 from src.utils.mailer import send_receipt_email, send_note_published_email
-
-# Explicitly load dotenv if we are running locally (fallback)
-from dotenv import load_dotenv
-load_dotenv()
 
 import json
 
