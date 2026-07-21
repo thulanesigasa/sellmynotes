@@ -122,7 +122,7 @@ async def analyze_uploaded_note(
         valuation = await analyze_notes_for_upload(text, file.filename)
         
         suggested_price = valuation.get("suggested_price_zar", 50)
-        final_price = round(suggested_price * 1.40, 2)
+        final_price = min(round(suggested_price * 1.40, 2), 54.76)
         
         desc = valuation.get("suggested_description")
         if not desc or len(desc.strip()) < 10:
