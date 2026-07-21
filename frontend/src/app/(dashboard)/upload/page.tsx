@@ -323,7 +323,7 @@ export default function UploadPage() {
                 type="text"
                 id="institution"
                 name="institution"
-                value={metadata.institution}
+                value={metadata.institution || ''}
                 onChange={handleChange}
                 placeholder="e.g. University of Cape Town or Pretoria High School"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
