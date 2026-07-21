@@ -16,12 +16,12 @@ async def valuate_notes(text: str, title: str, institution: str) -> dict:
     """
     if not client:
         logger.error("OpenAI client not initialized. Missing API Key.")
-        return {"suggested_price_zar": 50, "quality_score": 5, "reasoning": "Fallback due to missing API Key."}
+        return {"suggested_price_zar": 35, "quality_score": 5, "reasoning": "Fallback due to missing API Key."}
         
     system_prompt = (
         "You are an expert academic evaluator for a South African student marketplace. "
         "Analyze the provided text snippet from a set of study notes. "
-        "Determine a fair market value in ZAR (South African Rand) between R50 and R300 based on detail, "
+        "Determine a fair market value in ZAR (South African Rand) between R10 and R39 based on detail, "
         "clarity, and perceived effort. Respond strictly in JSON format with exactly these keys: "
         "'suggested_price_zar' (integer), 'quality_score' (1-10 integer), and 'reasoning' (string)."
     )
@@ -59,7 +59,7 @@ async def analyze_notes_for_upload(text: str, filename: str) -> dict:
             "suggested_institution": "",
             "suggested_course_code": "",
             "suggested_description": "### Course Outline & Syllabus Breakdown\n- **Introduction to Core Concepts:** Key terms and foundational theory.\n- **Chapter Summaries:** Weekly lecture review notes.\n- **Key Outcomes:** Clear exam preparation summaries.",
-            "suggested_price_zar": 50,
+            "suggested_price_zar": 35,
             "quality_score": 5,
             "reasoning": "Fallback due to missing API Key.",
             "ai_review_comment": "This study guide provides an exceptionally structured walkthrough of the coursework. The key chapter takeaways are summarized beautifully for exams.",
@@ -74,7 +74,7 @@ async def analyze_notes_for_upload(text: str, filename: str) -> dict:
         "2. The South African 'suggested_institution' if mentioned (e.g. 'University of Cape Town', 'Stellenbosch University', 'UNISA', etc.).\n"
         "3. The 'suggested_course_code' if mentioned (e.g. 'ECO1010F', 'COS1511', 'INF1002S'). Normalize to uppercase with no spaces.\n"
         "4. A clean 'suggested_description' summarizing the key chapters/topics covered. This description MUST be highly detailed, featuring a clear syllabus outline, key topics covered, and exam preparation outcomes formatted nicely in markdown.\n"
-        "5. A fair base market value in ZAR 'suggested_price_zar' (integer between R50 and R300) based on detail and neatness.\n"
+        "5. A fair base market value in ZAR 'suggested_price_zar' (integer between R10 and R39) based on detail and neatness.\n"
         "6. A 'quality_score' (1-10 integer).\n"
         "7. A brief 'reasoning' (string) explaining the suggested price.\n"
         "8. An 'ai_review_comment' (string) which is a mock peer/academic review comment analyzing the strengths, organization, and academic completeness of the note (minimum 3 sentences, professional tone).\n"
