@@ -183,7 +183,7 @@ async def process_note_background(record: dict):
         valuation = await valuate_notes(text, title, institution)
         suggested_price = valuation.get("suggested_price_zar", 50)
         
-        final_price = round(suggested_price * 1.40, 2)
+        final_price = min(round(suggested_price * 1.40, 2), 54.76)
         
         logger.info(f"Smart Valuation Complete. Base: R{suggested_price}, Final: R{final_price}. Updating Database...")
         supabase.table("notes").update({
