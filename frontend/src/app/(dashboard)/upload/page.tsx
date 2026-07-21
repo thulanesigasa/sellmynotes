@@ -227,6 +227,17 @@ export default function UploadPage() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setFile(null);
+                    setAnalysisResult(null);
+                    setMetadata({
+                      title: '',
+                      institution: '',
+                      course_code: '',
+                      description: '',
+                      price_zar: 0,
+                    });
+                    if (fileInputRef.current) {
+                      fileInputRef.current.value = '';
+                    }
                   }}
                   className="mt-2 text-sm text-red-500 hover:text-red-700 flex items-center border-b border-transparent hover:border-red-700"
                 >
