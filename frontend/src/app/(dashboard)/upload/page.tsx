@@ -244,8 +244,12 @@ export default function UploadPage() {
 
           {/* AI Scanning Loader */}
           {isAnalyzing && (
-            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-8 flex flex-col items-center justify-center space-y-4 animate-pulse">
-              <Sparkles className="h-10 w-10 text-blue-600 animate-spin" />
+            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-8 flex flex-col items-center justify-center space-y-4">
+              <div className="scanning-loader">
+                <span className="scanning-bar"></span>
+                <span className="scanning-bar"></span>
+                <span className="scanning-bar"></span>
+              </div>
               <div className="text-sm font-semibold text-blue-900">AI Note Valuation Engine Analysing...</div>
               <div className="text-xs text-blue-700 max-w-sm text-center">Reading PDF pages, running OCR, extracting course modules, and calculating suggested marketplace value. This takes about 5 seconds.</div>
             </div>
