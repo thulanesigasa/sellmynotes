@@ -395,12 +395,14 @@ export default function UploadPage() {
                     setMetadata(prev => ({ ...prev, price_zar: val }));
                   }}
                   className="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-sm"
-                  placeholder="e.g. 150"
+                  placeholder="e.g. 45"
                   min={10}
-                  max={500}
+                  max={54.76}
+                  step="0.01"
                   required
                 />
               </div>
+              <p className="text-xs text-gray-500 mt-1">Maximum allowed price on the marketplace is R54.76.</p>
             </div>
           </div>
 
