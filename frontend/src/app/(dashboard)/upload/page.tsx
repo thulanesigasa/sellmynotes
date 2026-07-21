@@ -43,7 +43,7 @@ export default function UploadPage() {
   const analyzeFile = async (selectedFile: File) => {
     setIsAnalyzing(true);
     setAnalysisResult(null);
-    const toastId = toast.loading('AI is scanning and valuating your notes...');
+    const toastId = toast.loading('AI is scanning, auto-straightening, and valuating your notes...');
     
     try {
       const formData = new FormData();
@@ -67,6 +67,29 @@ export default function UploadPage() {
       
       if (result.status === 'success') {
         setAnalysisResult(result);
+        
+        let fileToSave = selectedFile;
+        if (result.straightened_image) {
+          try {
+            const arr = result.straightened_image.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) {
+              u8arr[n] = bstr.charCodeAt(n);
+            }
+            const straightenedFile = new File([u8arr], selectedFile.name, { type: mime });
+            fileToSave = straightenedFile;
+            setFile(straightenedFile);
+            toast.info('AI detected page rotation and has straightened your uploaded notes image!', {
+              duration: 5000
+            });
+          } catch (decodeErr) {
+            console.error('Failed to parse straightened image:', decodeErr);
+          }
+        }
+
         setMetadata({
           title: result.extracted_metadata.title,
           institution: result.extracted_metadata.institution,
