@@ -356,7 +356,7 @@ export default function UploadPage() {
               <textarea
                 id="description"
                 name="description"
-                value={metadata.description}
+                value={metadata.description || ''}
                 onChange={handleChange}
                 placeholder="Describe your study notes (topics covered, chapter summaries, format, neatness)..."
                 rows={6}
