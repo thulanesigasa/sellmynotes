@@ -35,10 +35,20 @@ log_handler.setFormatter(JSONFormatter())
 logging.basicConfig(level=logging.INFO, handlers=[log_handler], force=True)
 logger = logging.getLogger(__name__)
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(
     title="SellMyNotes API",
     description="Backend microservice for OCR, PDF generation, and AI valuation.",
     version="0.1.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.get("/")
