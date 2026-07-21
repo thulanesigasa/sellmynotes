@@ -12,7 +12,9 @@ from datetime import datetime
 
 from src.lib.supabase_client import supabase
 from src.document.processor import extract_text_from_pdf_bytes, add_watermark_to_pdf
+from src.document.image_transformer import rotate_image
 from src.ai_engine.openai_client import valuate_notes, analyze_notes_for_upload
+from src.ai_engine.vision_client import detect_image_rotation
 from src.utils.mailer import send_receipt_email, send_note_published_email
 
 import json
@@ -85,6 +87,7 @@ async def analyze_uploaded_note(
 
     filename = file.filename.lower()
     text = ""
+    straightened_image_url = None
     
     try:
         if filename.endswith(".pdf"):
@@ -93,6 +96,17 @@ async def analyze_uploaded_note(
         elif filename.endswith((".png", ".jpg", ".jpeg")):
             logger.info("Extracting text from image upload (Mock OCR)...")
             text = "Image-based study notes. Substantial mathematical formulas, diagrams, and handwritten notes visible."
+            
+            # Detect rotation orientation
+            rotation_degrees = await detect_image_rotation(file_bytes)
+            if rotation_degrees in [90, 180, 270]:
+                file_bytes = rotate_image(file_bytes, rotation_degrees)
+                
+                # Encode rotated image bytes to base64 data URL
+                import base64
+                mime_type = "image/png" if filename.endswith(".png") else "image/jpeg"
+                b64_data = base64.b64encode(file_bytes).decode("utf-8")
+                straightened_image_url = f"data:{mime_type};base64,{b64_data}"
         else:
             raise HTTPException(status_code=400, detail="Unsupported file format. Please upload PDF, JPG, or PNG.")
 
@@ -117,6 +131,7 @@ async def analyze_uploaded_note(
         return {
             "status": "success",
             "ocr_text": text[:50000],
+            "straightened_image": straightened_image_url,
             "extracted_metadata": {
                 "title": valuation.get("suggested_title", file.filename.split(".")[0].replace("_", " ").title()),
                 "institution": valuation.get("suggested_institution", ""),
